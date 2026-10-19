@@ -1,0 +1,96 @@
+/* ============================================================
+   RECIPE COLLECTION - PRINT STYLESHEET
+   Clean, ink-saving layout for A4/letter paper.
+   ============================================================ */
+
+@media print {
+  /* Hide UI elements not needed on paper */
+  .navbar,
+  .footer,
+  .recipe-actions,
+  .card-fav-btn,
+  .theme-toggle-btn,
+  .toast-container,
+  .breadcrumbs,
+  .scaler-controls,
+  .reviews-section,
+  .related-recipes-section,
+  .btn,
+  .step-timer-badge {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt;
+    line-height: 1.4;
+  }
+
+  .container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .recipe-header-card,
+  .ingredients-card,
+  .instructions-card {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-bottom: 20px !important;
+    background: transparent !important;
+  }
+
+  .recipe-hero-title {
+    font-size: 20pt !important;
+    color: black !important;
+    margin-bottom: 8px !important;
+  }
+
+  .recipe-metrics-grid {
+    display: flex !important;
+    gap: 20px !important;
+    border: 1px solid #ddd !important;
+    background: #fafafa !important;
+    padding: 10px !important;
+  }
+
+  .recipe-content-grid {
+    display: block !important;
+  }
+
+  .ingredients-card {
+    margin-bottom: 24px !important;
+    page-break-inside: avoid;
+  }
+
+  .ingredient-item {
+    padding: 4px 0 !important;
+    border-bottom: 1px dotted #ccc !important;
+  }
+
+  .step-card {
+    margin-bottom: 16px !important;
+    page-break-inside: avoid;
+  }
+
+  .step-number {
+    background: #333 !important;
+    color: white !important;
+    box-shadow: none !important;
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 10pt !important;
+  }
+
+  .gallery-main-frame {
+    height: 250px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .gallery-thumbs {
+    display: none !important;
+  }
+}

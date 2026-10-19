@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Добавить новый рецепт — Recipe Collection{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 40px 24px 80px;">
+    <div class="form-card">
+        <div style="text-align: center; margin-bottom: 32px;">
+            <div class="hero-tag" style="margin-bottom: 12px;"><i class="fas fa-plus"></i> Новое блюдо</div>
+            <h1 style="font-size: 2rem; font-weight: 800;">Поделитесь своим кулинарным шедевром</h1>
+            <p style="color: var(--text-muted);">Заполните форму, чтобы добавить рецепт в общую коллекцию</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('add_recipe') }}" enctype="multipart/form-data">
+            <!-- 1. Basic Info -->
+            <div class="form-group">
+                <label class="form-label" for="title">Название блюда *</label>
+                <input type="text" id="title" name="title" class="form-control" required placeholder="Например: Паста Карбонара по-римски" value="{{ form_data.title if form_data else '' }}">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="category">Категория блюда *</label>
+                    <select id="category" name="category" class="form-control" required>
+                        {% for cat in app_categories %}
+                        <option value="{{ cat }}">{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="cuisine">Кухня мира *</label>
+                    <select id="cuisine" name="cuisine" class="form-control" required>
+                        <option value="">Выберите кухню</option>
+                        {% for c in app_cuisines %}
+                        <option value="{{ c }}">{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="difficulty">Сложность *</label>
+                    <select id="difficulty" name="difficulty" class="form-control" required>
+                        {% for d in app_difficulties %}
+                        <option value="{{ d }}">{{ d }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- 2. Timings & Servings -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="prep_time">Подготовка (мин) *</label>
+                    <input type="number" id="prep_time" name="prep_time" class="form-control" min="1" max="1440" value="{{ form_data.prep_time if form_data else 15 }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="cook_time">Приготовление (мин) *</label>
+                    <input type="number" id="cook_time" name="cook_time" class="form-control" min="1" max="1440" value="{{ form_data.cook_time if form_data else 30 }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="servings">Количество порций *</label>
+                    <input type="number" id="servings" name="servings" class="form-control" min="1" max="50" value="{{ form_data.servings if form_data else 4 }}" required>
+                </div>
+            </div>
+
+            <!-- 3. Nutrition (Optional) -->
+            <div class="form-group">
+                <label class="form-label">Пищевая ценность на порцию (КБЖУ, по желанию)</label>
+                <div class="form-row">
+                    <div>
+                        <input type="number" name="calories" class="form-control" placeholder="Калории (ккал)">
+                    </div>
+                    <div>
+                        <input type="number" step="0.1" name="protein" class="form-control" placeholder="Белки (г)">
+                    </div>
+                    <div>
+                        <input type="number" step="0.1" name="fat" class="form-control" placeholder="Жиры (г)">
+                    </div>
+                    <div>
+                        <input type="number" step="0.1" name="carbs" class="form-control" placeholder="Углеводы (г)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Dietary tags -->
+            <div class="form-group">
+                <label class="form-label" for="dietary">Теги / Особенности (через запятую)</label>
+                <input type="text" id="dietary" name="dietary" class="form-control" placeholder="Например: Вегетарианское, Без глютена, Быстрое, ЗОЖ">
+            </div>
+
+            <!-- 5. Description -->
+            <div class="form-group">
+                <label class="form-label" for="description">Краткое описание блюда *</label>
+                <textarea id="description" name="description" class="form-control" rows="3" required placeholder="Опишите вкус, историю или особенности этого блюда...">{{ form_data.description if form_data else '' }}</textarea>
+            </div>
+
+            <!-- 6. Ingredients -->
+            <div class="form-group">
+                <label class="form-label" for="ingredients">Ингредиенты (каждый с новой строки) *</label>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">
+                    Указывайте количество и единицу измерения для авто-масштабирования порций (например: <code>400 г спагетти</code> или <code>2 шт. яйца</code>).
+                </p>
+                <textarea id="ingredients" name="ingredients" class="form-control" rows="6" required placeholder="400 г спагетти
+150 г гуанчале или бекона
+4 шт. яичных желтка
+80 г сыра пармезан
+1 ч. л. свежемолотого черного перца">{{ form_data.ingredients if form_data else '' }}</textarea>
+            </div>
+
+            <!-- 7. Instructions -->
+            <div class="form-group">
+                <label class="form-label" for="instructions">Шаги приготовления (каждый шаг с новой строки) *</label>
+                <textarea id="instructions" name="instructions" class="form-control" rows="8" required placeholder="1. Нарежьте бекон небольшими кусочками и обжарьте на среднем огне 7 минут.
+2. В отдельной миске взбейте желтки с тертым сыром и перцем.
+3. Отварите пасту в подсоленной воде 8 минут до аль денте.
+4. Переложите пасту к бекону, влейте яичный соус и быстро перемешайте.">{{ form_data.instructions if form_data else '' }}</textarea>
+            </div>
+
+            <!-- 8. Image Upload with Drag & Drop -->
+            <div class="form-group">
+                <label class="form-label">Фотографии блюда (до 5 шт., PNG, JPG, WebP)</label>
+                <div class="dropzone" id="imageDropzone">
+                    <i class="fas fa-cloud-arrow-up dropzone-icon"></i>
+                    <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: 4px;">Нажмите для выбора или перетащите фото сюда</div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">Первое загруженное изображение станет главной обложкой рецепта</div>
+                    <input type="file" id="imageInput" name="images" multiple accept="image/*" style="display: none;">
+                    <div class="dropzone-preview-grid" id="dropzonePreviewGrid"></div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 16px; margin-top: 32px;">
+                <button type="submit" class="btn btn-primary btn-lg" style="flex: 1;">
+                    <i class="fas fa-check"></i> Опубликовать рецепт
+                </button>
+                <a href="{{ url_for('index') }}" class="btn btn-secondary btn-lg">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шеф-режим: {{ recipe.title }} — Recipe Collection</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="cooking-mode-body">
+    <!-- Top Bar -->
+    <header class="cooking-navbar">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <a href="{{ url_for('recipe_detail', recipe_id=recipe.id) }}" class="btn btn-secondary btn-sm" style="background: #1E293B; border-color: #334155; color: #F8FAFC;">
+                <i class="fas fa-times"></i> Выйти из режима
+            </a>
+            <div class="cooking-title">{{ recipe.title }}</div>
+        </div>
+        <div style="font-weight: 700; color: var(--text-muted);">
+            Шаг <span id="cookStepNum" style="color: var(--primary);">1</span> из {{ instructions|length }}
+        </div>
+    </header>
+
+    <!-- Progress Bar -->
+    <div class="cooking-progress-bar-container">
+        <div class="cooking-progress-fill" style="width: 20%;"></div>
+    </div>
+
+    <!-- Main Step Area -->
+    <main class="cooking-container">
+        {% for step in instructions %}
+        <div class="cooking-step-container" data-step="{{ step.number }}" data-timer-seconds="{{ step.timer_seconds }}" style="display: none;">
+            <div class="cooking-step-badge">
+                <i class="fas fa-fire" style="color: var(--primary);"></i> Шаг {{ step.number }}
+            </div>
+            <div class="cooking-step-instruction">
+                {{ step.text }}
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Interactive Countdown Timer (auto-appears when step mentions duration) -->
+        <div class="cooking-timer-widget" style="display: none;">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <i class="fas fa-stopwatch" style="font-size: 2.5rem; color: var(--accent);"></i>
+                <div>
+                    <div style="font-size: 0.85rem; text-transform: uppercase; color: #94A3B8; font-weight: 700;">Таймер для текущего шага</div>
+                    <div class="timer-clock" id="timerClock">00:00</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button type="button" id="timerToggleBtn" class="btn btn-primary btn-lg">
+                    <i class="fas fa-play"></i> Старт
+                </button>
+                <button type="button" id="timerResetBtn" class="btn btn-secondary btn-lg" style="background: #334155; border: none; color: white;">
+                    <i class="fas fa-rotate-left"></i> Сброс
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Controls -->
+        <div class="cooking-controls">
+            <button type="button" id="cookPrevBtn" class="btn btn-secondary btn-lg" style="background: #1E293B; border-color: #334155; color: white;">
+                <i class="fas fa-arrow-left"></i> Назад
+            </button>
+            <div style="color: #64748B; font-size: 0.85rem;">
+                <i class="fas fa-keyboard"></i> Переключайте стрелками [←] и [→] на клавиатуре
+            </div>
+            <button type="button" id="cookNextBtn" class="btn btn-primary btn-lg">
+                Далее <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/cooking_mode.js') }}"></script>
+</body>
+</html>

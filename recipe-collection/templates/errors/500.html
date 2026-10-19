@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Ошибка сервера (500) — Recipe Collection{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 100px 24px; text-align: center;">
+    <div style="font-size: 5rem; color: var(--accent); font-weight: 800; line-height: 1; margin-bottom: 20px;">500</div>
+    <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 12px;">У шефа что-то подгорело</h1>
+    <p style="color: var(--text-muted); max-width: 480px; margin: 0 auto 32px;">
+        На сервере произошла непредвиденная ошибка. Мы уже работаем над её устранением.
+    </p>
+    <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+        <i class="fas fa-home"></i> Вернуться на главную
+    </a>
+</div>
+{% endblock %}

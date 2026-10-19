@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: recipe_collection_web
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - SECRET_KEY=prod-ultra-secure-key-recipe-2026
+      - DATABASE_URL=sqlite:///instance/recipes.db
+      - FLASK_DEBUG=0
+    volumes:
+      - ./instance:/app/instance
+      - ./static/uploads:/app/static/uploads

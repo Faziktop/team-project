@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Регистрация — Recipe Collection{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 60px 24px 100px;">
+    <div class="form-card auth-card">
+        <div style="text-align: center; margin-bottom: 28px;">
+            <div class="hero-tag" style="margin-bottom: 12px;"><i class="fas fa-user-plus"></i> Новый аккаунт</div>
+            <h1 style="font-size: 1.85rem; font-weight: 800;">Регистрация</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Создайте аккаунт, чтобы публиковать свои рецепты и оценивать другие</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('register') }}">
+            <div class="form-group">
+                <label class="form-label" for="username">Имя пользователя *</label>
+                <input type="text" id="username" name="username" class="form-control" required placeholder="chef_ivan" autocomplete="username">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="email">Электронная почта *</label>
+                <input type="email" id="email" name="email" class="form-control" required placeholder="ivan@culinary.ru" autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Пароль *</label>
+                <input type="password" id="password" name="password" class="form-control" required placeholder="Минимум 6 символов" minlength="6" autocomplete="new-password">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="confirm_password">Подтверждение пароля *</label>
+                <input type="password" id="confirm_password" name="confirm_password" class="form-control" required placeholder="Повторите пароль" minlength="6" autocomplete="new-password">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 8px;">
+                <i class="fas fa-check"></i> Зарегистрироваться
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-subtle); font-size: 0.9rem; color: var(--text-muted);">
+            Уже есть аккаунт? <a href="{{ url_for('login') }}" style="color: var(--primary); font-weight: 700;">Войти в систему</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

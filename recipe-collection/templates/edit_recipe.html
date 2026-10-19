@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Редактировать рецепт: {{ recipe.title }} — Recipe Collection{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 40px 24px 80px;">
+    <div class="form-card">
+        <div style="text-align: center; margin-bottom: 32px;">
+            <div class="hero-tag" style="margin-bottom: 12px;"><i class="fas fa-edit"></i> Редактирование</div>
+            <h1 style="font-size: 2rem; font-weight: 800;">{{ recipe.title }}</h1>
+            <p style="color: var(--text-muted);">Обновите данные или фотографии рецепта</p>
+        </div>
+
+        <!-- Current Images Gallery with Delete Option -->
+        {% if images %}
+        <div style="margin-bottom: 32px; background: var(--bg-subtle); padding: 20px; border-radius: var(--radius-lg);">
+            <label class="form-label">Текущие фотографии рецепта:</label>
+            <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px;">
+                {% for img in images %}
+                <div style="position: relative; width: 120px; height: 90px; border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm);">
+                    <img src="{{ url_for('uploaded_file', filename=img) }}" alt="Photo {{ loop.index }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    <form action="{{ url_for('delete_recipe_image', recipe_id=recipe.id, filename=img) }}" method="POST" style="position: absolute; top: 6px; right: 6px;" onsubmit="return confirm('Удалить эту фотографию?');">
+                        <button type="submit" style="background: rgba(239, 68, 68, 0.9); border: none; color: white; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;" title="Удалить фото">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('edit_recipe', recipe_id=recipe.id) }}" enctype="multipart/form-data">
+            <!-- 1. Basic Info -->
+            <div class="form-group">
+                <label class="form-label" for="title">Название блюда *</label>
+                <input type="text" id="title" name="title" class="form-control" required value="{{ recipe.title }}">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="category">Категория блюда *</label>
+                    <select id="category" name="category" class="form-control" required>
+                        {% for cat in app_categories %}
+                        <option value="{{ cat }}" {% if recipe.category == cat %}selected{% endif %}>{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="cuisine">Кухня мира *</label>
+                    <select id="cuisine" name="cuisine" class="form-control" required>
+                        {% for c in app_cuisines %}
+                        <option value="{{ c }}" {% if recipe.cuisine == c %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="difficulty">Сложность *</label>
+                    <select id="difficulty" name="difficulty" class="form-control" required>
+                        {% for d in app_difficulties %}
+                        <option value="{{ d }}" {% if recipe.difficulty == d %}selected{% endif %}>{{ d }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- 2. Timings & Servings -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="prep_time">Подготовка (мин) *</label>
+                    <input type="number" id="prep_time" name="prep_time" class="form-control" min="1" max="1440" value="{{ recipe.prep_time }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="cook_time">Приготовление (мин) *</label>
+                    <input type="number" id="cook_time" name="cook_time" class="form-control" min="1" max="1440" value="{{ recipe.cook_time }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="servings">Количество порций *</label>
+                    <input type="number" id="servings" name="servings" class="form-control" min="1" max="50" value="{{ recipe.servings }}" required>
+                </div>
+            </div>
+
+            <!-- 3. Nutrition (Optional) -->
+            <div class="form-group">
+                <label class="form-label">Пищевая ценность на порцию (КБЖУ)</label>
+                <div class="form-row">
+                    <div>
+                        <input type="number" name="calories" class="form-control" placeholder="Калории (ккал)" value="{{ recipe.calories or '' }}">
+                    </div>
+                    <div>
+                        <input type="number" step="0.1" name="protein" class="form-control" placeholder="Белки (г)" value="{{ recipe.protein or '' }}">
+                    </div>
+                    <div>
+                        <input type="number" step="0.1" name="fat" class="form-control" placeholder="Жиры (г)" value="{{ recipe.fat or '' }}">
+                    </div>
+                    <div>
+                        <input type="number" step="0.1" name="carbs" class="form-control" placeholder="Углеводы (г)" value="{{ recipe.carbs or '' }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Dietary tags -->
+            <div class="form-group">
+                <label class="form-label" for="dietary">Теги / Особенности (через запятую)</label>
+                <input type="text" id="dietary" name="dietary" class="form-control" value="{{ recipe.dietary or '' }}" placeholder="Например: Вегетарианское, Без глютена, Быстрое, ЗОЖ">
+            </div>
+
+            <!-- 5. Description -->
+            <div class="form-group">
+                <label class="form-label" for="description">Краткое описание блюда *</label>
+                <textarea id="description" name="description" class="form-control" rows="3" required>{{ recipe.description }}</textarea>
+            </div>
+
+            <!-- 6. Ingredients -->
+            <div class="form-group">
+                <label class="form-label" for="ingredients">Ингредиенты (каждый с новой строки) *</label>
+                <textarea id="ingredients" name="ingredients" class="form-control" rows="6" required>{{ recipe.ingredients }}</textarea>
+            </div>
+
+            <!-- 7. Instructions -->
+            <div class="form-group">
+                <label class="form-label" for="instructions">Шаги приготовления (каждый шаг с новой строки) *</label>
+                <textarea id="instructions" name="instructions" class="form-control" rows="8" required>{{ recipe.instructions }}</textarea>
+            </div>
+
+            <!-- 8. Additional Images -->
+            <div class="form-group">
+                <label class="form-label">Загрузить дополнительные фотографии (PNG, JPG, WebP)</label>
+                <div class="dropzone" id="imageDropzone">
+                    <i class="fas fa-cloud-arrow-up dropzone-icon"></i>
+                    <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: 4px;">Нажмите для выбора или перетащите фото сюда</div>
+                    <input type="file" id="imageInput" name="images" multiple accept="image/*" style="display: none;">
+                    <div class="dropzone-preview-grid" id="dropzonePreviewGrid"></div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 16px; margin-top: 32px;">
+                <button type="submit" class="btn btn-primary btn-lg" style="flex: 1;">
+                    <i class="fas fa-floppy-disk"></i> Сохранить изменения
+                </button>
+                <a href="{{ url_for('recipe_detail', recipe_id=recipe.id) }}" class="btn btn-secondary btn-lg">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

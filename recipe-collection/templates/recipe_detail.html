@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+
+{% block title %}{{ recipe.title }} — Рецепт с фото{% endblock %}
+
+{% block content %}
+<div class="recipe-page">
+    <div class="container">
+        <!-- Breadcrumbs -->
+        <nav class="breadcrumbs" aria-label="Breadcrumb">
+            <a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Главная</a>
+            <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+            <a href="{{ url_for('index', category=recipe.category) }}">{{ recipe.category }}</a>
+            <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+            <span>{{ recipe.title }}</span>
+        </nav>
+
+        <!-- Header Card -->
+        <div class="recipe-header-card">
+            <div class="recipe-title-row">
+                <div>
+                    <h1 class="recipe-hero-title">{{ recipe.title }}</h1>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-top: 10px;">
+                        <a href="{{ url_for('profile', username=recipe.author.username) }}" style="display: flex; align-items: center; gap: 8px; font-weight: 600;">
+                            <img src="{{ recipe.author.get_avatar_url() }}" alt="{{ recipe.author.username }}" class="author-mini-avatar">
+                            <span>{{ recipe.author.username }}</span>
+                        </a>
+                        <span style="color: var(--text-subtle);">•</span>
+                        <span style="color: var(--text-muted); font-size: 0.9rem;">
+                            <i class="far fa-calendar"></i> {{ recipe.created_at.strftime('%d.%m.%Y') }}
+                        </span>
+                        <span style="color: var(--text-subtle);">•</span>
+                        <span style="color: var(--text-muted); font-size: 0.9rem;">
+                            <i class="far fa-eye"></i> {{ recipe.views_count }} просмотров
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="recipe-actions">
+                    {% if current_user.is_authenticated %}
+                    <button class="btn btn-secondary fav-toggle-btn {% if is_favorite %}active{% endif %}" 
+                            data-recipe-id="{{ recipe.id }}" 
+                            title="В избранное">
+                        <i class="{% if is_favorite %}fas{% else %}far{% endif %} fa-heart" style="color: #EF4444;"></i>
+                        <span class="fav-count">{{ recipe.favorites_count }}</span>
+                    </button>
+                    {% endif %}
+
+                    <a href="{{ url_for('cooking_mode', recipe_id=recipe.id) }}" class="btn btn-cook" title="Пошаговый режим приготовления">
+                        <i class="fas fa-hat-chef"></i> Режим шеф-повара
+                    </a>
+
+                    <button class="btn btn-secondary" onclick="window.print()" title="Распечатать рецепт">
+                        <i class="fas fa-print"></i>
+                    </button>
+
+                    <button id="shareRecipeBtn" class="btn btn-secondary" title="Поделиться">
+                        <i class="fas fa-share-nodes"></i>
+                    </button>
+
+                    {% if current_user.is_authenticated and (current_user.id == recipe.user_id or current_user.is_admin) %}
+                    <a href="{{ url_for('edit_recipe', recipe_id=recipe.id) }}" class="btn btn-secondary" title="Редактировать">
+                        <i class="fas fa-pen-to-square"></i>
+                    </a>
+                    <form action="{{ url_for('delete_recipe', recipe_id=recipe.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Вы уверены, что хотите удалить этот рецепт?');">
+                        <button type="submit" class="btn btn-danger btn-sm" title="Удалить">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tags -->
+            <div class="recipe-tags-row">
+                <span class="tag-badge tag-cuisine"><i class="fas fa-globe"></i> {{ recipe.cuisine }} кухня</span>
+                <span class="tag-badge tag-category"><i class="fas fa-folder"></i> {{ recipe.category }}</span>
+                <span class="tag-badge tag-difficulty"><i class="fas fa-gauge"></i> {{ recipe.difficulty }}</span>
+                {% for tag in recipe.dietary_list() %}
+                <span class="tag-badge" style="background-color: var(--bg-subtle); color: var(--text-main); border: 1px solid var(--border-color);">
+                    #{{ tag }}
+                </span>
+                {% endfor %}
+            </div>
+
+            <!-- Key Metrics Grid -->
+            <div class="recipe-metrics-grid">
+                <div class="metric-box">
+                    <div class="metric-label">Общее время</div>
+                    <div class="metric-value"><i class="far fa-clock" style="color: var(--primary);"></i> {{ recipe.total_time_formatted }}</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">Подготовка</div>
+                    <div class="metric-value">{{ recipe.prep_time }} мин</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">Приготовление</div>
+                    <div class="metric-value">{{ recipe.cook_time }} мин</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">Рейтинг</div>
+                    <div class="metric-value" style="color: var(--accent);">
+                        <i class="fas fa-star"></i> {{ recipe.average_rating if recipe.average_rating > 0 else '—' }}
+                    </div>
+                </div>
+                {% if recipe.calories %}
+                <div class="metric-box">
+                    <div class="metric-label">Калории (порция)</div>
+                    <div class="metric-value">{{ recipe.calories }} ккал</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recipe Gallery -->
+        <div class="recipe-gallery">
+            <div class="gallery-main-frame">
+                <img id="galleryMainImage" src="{{ recipe.get_main_image_url() }}" alt="{{ recipe.title }}" class="gallery-main-img">
+            </div>
+            {% if images|length > 1 %}
+            <div class="gallery-thumbs">
+                {% for img in images %}
+                <div class="gallery-thumb {% if loop.first %}active{% endif %}" data-full-src="{{ url_for('uploaded_file', filename=img) }}">
+                    <img src="{{ url_for('uploaded_file', filename=img) }}" alt="Thumbnail {{ loop.index }}">
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Two Columns Layout: Ingredients & Steps -->
+        <div class="recipe-content-grid">
+            <!-- Left Column: Ingredients Card -->
+            <aside class="ingredients-card">
+                <h3 style="font-size: 1.35rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-carrot" style="color: var(--primary);"></i> Ингредиенты
+                </h3>
+
+                <!-- Servings Scaler Widget -->
+                <div class="servings-scaler" data-base-servings="{{ recipe.servings }}">
+                    <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-muted);">Порции:</span>
+                    <div class="scaler-controls">
+                        <button type="button" class="scaler-btn scaler-decrease" aria-label="Decrease servings">-</button>
+                        <span class="servings-display">{{ recipe.servings }} порции</span>
+                        <button type="button" class="scaler-btn scaler-increase" aria-label="Increase servings">+</button>
+                    </div>
+                </div>
+
+                <!-- Ingredient Checklist -->
+                <div class="ingredients-list">
+                    {% for item in ingredients %}
+                    <div class="ingredient-item">
+                        <input type="checkbox" class="ingredient-checkbox" id="ing_{{ loop.index }}" title="Отметить как имеющееся">
+                        <label for="ing_{{ loop.index }}" class="ingredient-text">
+                            {% if item.amount %}
+                            <span class="ingredient-amount" data-base-amount="{{ item.amount }}">{{ item.amount }}</span>
+                            {% endif %}
+                            {% if item.unit %}<span>{{ item.unit }}</span>{% endif %}
+                            <span>{{ item.name }}</span>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Shopping List Button -->
+                <button id="addIngredientsToShoppingList" class="btn btn-secondary" style="width: 100%; margin-top: 20px;">
+                    <i class="fas fa-cart-plus"></i> В список покупок
+                </button>
+
+                <!-- Nutritional Info (КБЖУ) -->
+                {% if recipe.calories or recipe.protein or recipe.fat or recipe.carbs %}
+                <div class="nutrition-card">
+                    <div class="nutrition-title"><i class="fas fa-chart-pie"></i> Пищевая ценность (на порцию)</div>
+                    <div class="nutrition-grid">
+                        <div class="nutrition-pill">
+                            <div class="nutri-val">{{ recipe.calories or '—' }}</div>
+                            <div class="nutri-lbl">ккал</div>
+                        </div>
+                        <div class="nutrition-pill">
+                            <div class="nutri-val">{{ recipe.protein or '—' }} г</div>
+                            <div class="nutri-lbl">белки</div>
+                        </div>
+                        <div class="nutrition-pill">
+                            <div class="nutri-val">{{ recipe.fat or '—' }} г</div>
+                            <div class="nutri-lbl">жиры</div>
+                        </div>
+                        <div class="nutrition-pill">
+                            <div class="nutri-val">{{ recipe.carbs or '—' }} г</div>
+                            <div class="nutri-lbl">углеводы</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </aside>
+
+            <!-- Right Column: Description & Instructions -->
+            <div class="instructions-card">
+                <!-- Description -->
+                <div style="margin-bottom: 36px;">
+                    <h3 style="font-size: 1.35rem; font-weight: 700; margin-bottom: 12px;">О блюде</h3>
+                    <p style="font-size: 1.05rem; line-height: 1.7; color: var(--text-main);">
+                        {{ recipe.description }}
+                    </p>
+                </div>
+
+                <!-- Steps Header -->
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+                    <h3 style="font-size: 1.35rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-list-check" style="color: var(--primary);"></i> Пошаговое приготовление
+                    </h3>
+                    <a href="{{ url_for('cooking_mode', recipe_id=recipe.id) }}" class="btn btn-outline btn-sm">
+                        <i class="fas fa-expand"></i> Полный экран
+                    </a>
+                </div>
+
+                <!-- Step-by-Step List -->
+                <div class="steps-list">
+                    {% for step in instructions %}
+                    <div class="step-card">
+                        <div class="step-number">{{ step.number }}</div>
+                        <div class="step-content">
+                            <p class="step-text">{{ step.text }}</p>
+                            {% if step.timer_label %}
+                            <div class="step-timer-badge" onclick="window.location.href='{{ url_for('cooking_mode', recipe_id=recipe.id) }}'">
+                                <i class="fas fa-stopwatch"></i> Время шага: {{ step.timer_label }} (запустить таймер)
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews & Ratings Section -->
+        <section class="reviews-section">
+            <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-comments" style="color: var(--primary);"></i> Отзывы и оценки ({{ recipe.reviews_count }})
+            </h3>
+
+            <!-- Review Form -->
+            {% if current_user.is_authenticated %}
+            <div class="review-form-card">
+                <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 12px;">
+                    {% if user_review %}Редактировать ваш отзыв{% else %}Оставьте ваш отзыв и оценку{% endif %}
+                </h4>
+                <form action="{{ url_for('add_review', recipe_id=recipe.id) }}" method="POST">
+                    <div class="form-group">
+                        <label class="form-label">Ваша оценка блюда *</label>
+                        <div class="star-rating-select">
+                            {% for i in range(1, 6) %}
+                            <i class="fas fa-star star {% if user_review and user_review.rating >= i %}selected{% endif %}" data-star="{{ i }}"></i>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="rating" id="ratingInput" value="{{ user_review.rating if user_review else '5' }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="reviewComment">Комментарий / впечатления</label>
+                        <textarea name="comment" id="reviewComment" class="form-control" rows="3" placeholder="Расскажите, как получилось блюдо, какие внесли изменения или полезные советы...">{{ user_review.comment if user_review else '' }}</textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> {% if user_review %}Обновить отзыв{% else %}Опубликовать отзыв{% endif %}
+                    </button>
+                </form>
+            </div>
+            {% else %}
+            <div style="background-color: var(--bg-subtle); padding: 20px; border-radius: var(--radius-lg); text-align: center; margin-bottom: 28px;">
+                <p style="margin-bottom: 12px; color: var(--text-muted);">Чтобы оставить отзыв или поставить оценку блюду, пожалуйста, авторизуйтесь.</p>
+                <a href="{{ url_for('login', next=request.path) }}" class="btn btn-primary btn-sm">Войти в аккаунт</a>
+            </div>
+            {% endif %}
+
+            <!-- Reviews List -->
+            {% if recipe.reviews %}
+            <div class="reviews-list">
+                {% for rev in recipe.reviews %}
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="review-author-info">
+                            <img src="{{ rev.author.get_avatar_url() }}" alt="{{ rev.author.username }}" class="author-mini-avatar">
+                            <div>
+                                <span style="font-weight: 700;">{{ rev.author.username }}</span>
+                                <span style="font-size: 0.8rem; color: var(--text-subtle); margin-left: 8px;">{{ rev.created_at.strftime('%d.%m.%Y') }}</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="color: var(--accent); font-size: 0.95rem;">
+                                {% for s in range(rev.rating) %}<i class="fas fa-star"></i>{% endfor %}
+                                {% for s in range(5 - rev.rating) %}<i class="far fa-star"></i>{% endfor %}
+                            </div>
+                            {% if current_user.is_authenticated and (current_user.id == rev.user_id or current_user.is_admin) %}
+                            <form action="{{ url_for('delete_review', review_id=rev.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Удалить отзыв?');">
+                                <button type="submit" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 0.85rem;" title="Удалить">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if rev.comment %}
+                    <p class="review-comment">{{ rev.comment }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="color: var(--text-muted); text-align: center; padding: 20px 0;">У этого рецепта пока нет отзывов. Будьте первым!</p>
+            {% endif %}
+        </section>
+
+        <!-- Related Recipes -->
+        {% if related_recipes %}
+        <section class="related-recipes-section" style="margin-top: 48px;">
+            <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 24px;">Вам также может понравиться</h3>
+            <div class="recipe-grid">
+                {% for rel in related_recipes %}
+                <article class="recipe-card">
+                    <div class="card-media">
+                        <a href="{{ url_for('recipe_detail', recipe_id=rel.id) }}">
+                            <img src="{{ rel.get_main_image_url() }}" alt="{{ rel.title }}" class="card-img" loading="lazy">
+                        </a>
+                        <div class="card-badges">
+                            <span class="badge badge-cuisine">{{ rel.cuisine }}</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-meta">
+                            <div class="meta-item"><i class="far fa-clock"></i> {{ rel.total_time_formatted }}</div>
+                        </div>
+                        <h4 class="card-title">
+                            <a href="{{ url_for('recipe_detail', recipe_id=rel.id) }}">{{ rel.title }}</a>
+                        </h4>
+                        <div class="card-footer">
+                            <span class="author-name">{{ rel.author.username }}</span>
+                            <div class="card-rating">
+                                <i class="fas fa-star"></i> {{ rel.average_rating if rel.average_rating > 0 else '—' }}
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

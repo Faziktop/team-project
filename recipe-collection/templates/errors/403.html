@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Доступ запрещен (403) — Recipe Collection{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 100px 24px; text-align: center;">
+    <div style="font-size: 5rem; color: var(--danger); font-weight: 800; line-height: 1; margin-bottom: 20px;">403</div>
+    <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 12px;">Доступ ограничен</h1>
+    <p style="color: var(--text-muted); max-width: 480px; margin: 0 auto 32px;">
+        У вас нет прав для просмотра этой страницы или выполнения данного действия.
+    </p>
+    <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+        <i class="fas fa-home"></i> Вернуться на главную
+    </a>
+</div>
+{% endblock %}

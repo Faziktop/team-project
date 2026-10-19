@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Кулинарный портал{% endblock %} — Recipe Collection</title>
+    
+    <!-- Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@600;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Main Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}" media="print">
+    
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/logo.svg') }}">
+</head>
+<body>
+    <!-- Top Navigation -->
+    <header class="navbar">
+        <div class="container navbar-inner">
+            <a href="{{ url_for('index') }}" class="nav-brand">
+                <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="Recipe Collection" class="nav-brand-logo">
+            </a>
+
+            <!-- Navigation Links -->
+            <ul class="nav-menu">
+                <li>
+                    <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
+                        <i class="fas fa-compass"></i> Все рецепты
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('add_recipe') }}" class="nav-link {% if request.endpoint == 'add_recipe' %}active{% endif %}">
+                        <i class="fas fa-plus-circle"></i> Добавить рецепт
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('shopping_list') }}" class="nav-link {% if request.endpoint == 'shopping_list' %}active{% endif %}">
+                        <i class="fas fa-shopping-basket"></i> Список покупок
+                    </a>
+                </li>
+                {% if current_user.is_authenticated and current_user.is_admin %}
+                <li>
+                    <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if 'admin' in request.endpoint %}active{% endif %}">
+                        <i class="fas fa-shield-halved"></i> Админка
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+
+            <!-- Actions (Theme Toggle, User Profile, Mobile Menu) -->
+            <div class="nav-actions">
+                <button id="themeToggleBtn" class="theme-toggle-btn" title="Переключить тему" aria-label="Toggle theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+
+                {% if current_user.is_authenticated %}
+                <div class="user-dropdown">
+                    <button class="user-profile-btn" type="button" aria-expanded="false">
+                        <img src="{{ current_user.get_avatar_url() }}" alt="{{ current_user.username }}" class="avatar-img">
+                        <i class="fas fa-chevron-down" style="font-size: 0.75rem; color: var(--text-muted);"></i>
+                    </button>
+                    <div class="user-dropdown-menu">
+                        <div class="dropdown-header">
+                            <div class="dropdown-username">{{ current_user.username }}</div>
+                            <div class="dropdown-email">{{ current_user.email }}</div>
+                        </div>
+                        <a href="{{ url_for('profile', username=current_user.username) }}" class="dropdown-item">
+                            <i class="fas fa-user-circle"></i> Мой профиль
+                        </a>
+                        <a href="{{ url_for('profile', username=current_user.username) }}#favorites" class="dropdown-item">
+                            <i class="fas fa-heart" style="color: #EF4444;"></i> Избранное 
+                            <span class="badge-count favorites-badge-count" style="margin-left: auto;">{{ user_favorites_count }}</span>
+                        </a>
+                        <a href="{{ url_for('add_recipe') }}" class="dropdown-item">
+                            <i class="fas fa-plus-circle" style="color: var(--primary);"></i> Новый рецепт
+                        </a>
+                        {% if current_user.is_admin %}
+                        <div class="dropdown-divider"></div>
+                        <a href="{{ url_for('admin_dashboard') }}" class="dropdown-item">
+                            <i class="fas fa-gauge"></i> Панель управления
+                        </a>
+                        {% endif %}
+                        <div class="dropdown-divider"></div>
+                        <a href="{{ url_for('logout') }}" class="dropdown-item" style="color: var(--danger);">
+                            <i class="fas fa-arrow-right-from-bracket"></i> Выйти
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <div style="display: flex; gap: 10px;">
+                    <a href="{{ url_for('login') }}" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-arrow-right-to-bracket"></i> Вход
+                    </a>
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">
+                        Регистрация
+                    </a>
+                </div>
+                {% endif %}
+
+                <button class="mobile-toggle" aria-label="Open navigation menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Floating Toast Notifications -->
+    <div class="toast-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="toast toast-{{ 'error' if category == 'error' else ('success' if category == 'success' else 'info') }}">
+                        <i class="fas fa-{{ 'exclamation-circle' if category == 'error' else ('check-circle' if category == 'success' else 'info-circle') }}"></i>
+                        <span>{{ message }}</span>
+                        <button class="toast-close">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content Block -->
+    <main style="flex: 1;">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="Recipe Collection" style="height: 38px;">
+                    <p>Премиальная платформа для кулинарного вдохновения. Сохраняйте лучшие рецепты, масштабируйте ингредиенты и готовьте с удовольствием.</p>
+                </div>
+                <div>
+                    <h4 class="footer-col-title">Категории</h4>
+                    <ul class="footer-links">
+                        {% for cat in app_categories[:5] %}
+                        <li><a href="{{ url_for('index', category=cat) }}">{{ cat }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer-col-title">Кухни мира</h4>
+                    <ul class="footer-links">
+                        {% for c in app_cuisines[:5] %}
+                        <li><a href="{{ url_for('index', cuisine=c) }}">{{ c }} кухня</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer-col-title">Возможности</h4>
+                    <ul class="footer-links">
+                        <li><a href="{{ url_for('shopping_list') }}">Список покупок</a></li>
+                        <li><a href="{{ url_for('add_recipe') }}">Добавить рецепт</a></li>
+                        <li><a href="/api/recipes">REST API (JSON)</a></li>
+                        <li><a href="{{ url_for('login') }}">Вход для авторов</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div>&copy; {{ current_year }} Recipe Collection. Все права защищены.</div>
+                <div style="display: flex; gap: 16px;">
+                    <span><i class="fas fa-heart" style="color: var(--primary);"></i> Сделано для любителей вкусной еды</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

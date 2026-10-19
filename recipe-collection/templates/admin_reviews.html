@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Модерация отзывов — Панель администратора{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 40px 24px 80px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <div class="breadcrumbs" style="margin-bottom: 8px;">
+                <a href="{{ url_for('admin_dashboard') }}"><i class="fas fa-gauge"></i> Админка</a>
+                <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+                <span>Отзывы</span>
+            </div>
+            <h1 style="font-size: 2rem; font-weight: 800;">Модерация отзывов ({{ reviews|length }})</h1>
+        </div>
+    </div>
+
+    <div class="admin-table-container">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Рецепт</th>
+                    <th>Автор отзыва</th>
+                    <th>Оценка</th>
+                    <th>Текст комментария</th>
+                    <th>Дата</th>
+                    <th style="text-align: right;">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rev in reviews %}
+                <tr>
+                    <td>#{{ rev.id }}</td>
+                    <td>
+                        <a href="{{ url_for('recipe_detail', recipe_id=rev.recipe.id) }}" style="font-weight: 700;">
+                            {{ rev.recipe.title }}
+                        </a>
+                    </td>
+                    <td>{{ rev.author.username }}</td>
+                    <td style="color: var(--accent);">
+                        {% for i in range(rev.rating) %}<i class="fas fa-star"></i>{% endfor %}
+                    </td>
+                    <td style="max-width: 320px; font-size: 0.9rem;">
+                        {{ rev.comment if rev.comment else '— (без текста)' }}
+                    </td>
+                    <td style="font-size: 0.85rem; color: var(--text-muted);">{{ rev.created_at.strftime('%d.%m.%Y') }}</td>
+                    <td style="text-align: right;">
+                        <form action="{{ url_for('delete_review', review_id=rev.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Удалить этот отзыв?');">
+                            <button type="submit" class="btn btn-danger btn-sm" title="Удалить отзыв">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

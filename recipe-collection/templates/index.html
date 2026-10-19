@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Главная — Каталог рецептов{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container hero-inner">
+        <div class="hero-tag">
+            <i class="fas fa-fire-flame-curved"></i> Кулинарное вдохновение
+        </div>
+        <h1 class="hero-title">
+            Найдите рецепт для <span>любого настроения</span>
+        </h1>
+        <p class="hero-subtitle">
+            Более {{ total_recipes_count }} проверенных пошаговых рецептов с расчетом ингредиентов, таймерами и советами шеф-поваров.
+        </p>
+
+        <!-- Big Search Bar -->
+        <form action="{{ url_for('index') }}" method="GET" class="search-form">
+            <div class="search-input-wrapper">
+                <i class="fas fa-magnifying-glass search-icon"></i>
+                <input 
+                    type="text" 
+                    name="q" 
+                    class="search-input" 
+                    placeholder="Название блюда, ингредиент или кухня (например: Карбонара, яйца)..." 
+                    value="{{ search_query }}"
+                    autocomplete="off"
+                >
+                {% if selected_cuisine %}<input type="hidden" name="cuisine" value="{{ selected_cuisine }}">{% endif %}
+                {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+                <button type="submit" class="btn btn-primary search-btn">
+                    <i class="fas fa-arrow-right"></i> Найти
+                </button>
+            </div>
+        </form>
+
+        <!-- Category Pills Carousel -->
+        <div class="category-pills">
+            <a href="{{ url_for('index', q=search_query, cuisine=selected_cuisine) }}" 
+               class="pill-item {% if not selected_category or selected_category == 'Все' %}active{% endif %}">
+                <i class="fas fa-utensils"></i> Все блюда
+            </a>
+            {% for cat in app_categories %}
+            <a href="{{ url_for('index', category=cat, q=search_query, cuisine=selected_cuisine) }}" 
+               class="pill-item {% if selected_category == cat %}active{% endif %}">
+                {% if cat == 'Завтраки' %}<i class="fas fa-egg"></i>
+                {% elif cat == 'Основные блюда' %}<i class="fas fa-bowl-food"></i>
+                {% elif cat == 'Супы' %}<i class="fas fa-mug-hot"></i>
+                {% elif cat == 'Салаты' %}<i class="fas fa-seedling"></i>
+                {% elif cat == 'Десерты и выпечка' %}<i class="fas fa-cake-candles"></i>
+                {% else %}<i class="fas fa-plate-wheat"></i>{% endif %}
+                {{ cat }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Filter & Sort Toolbar -->
+<section class="toolbar-section">
+    <div class="container">
+        <form id="filterForm" action="{{ url_for('index') }}" method="GET" class="toolbar-inner">
+            {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+            {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+
+            <div class="filter-group">
+                <!-- Cuisine Filter -->
+                <select name="cuisine" class="filter-select" onchange="this.form.submit()">
+                    <option value="">Все кухни мира</option>
+                    {% for c in app_cuisines %}
+                    <option value="{{ c }}" {% if selected_cuisine == c %}selected{% endif %}>{{ c }} кухня</option>
+                    {% endfor %}
+                </select>
+
+                <!-- Difficulty Filter -->
+                <select name="difficulty" class="filter-select" onchange="this.form.submit()">
+                    <option value="">Любая сложность</option>
+                    {% for d in app_difficulties %}
+                    <option value="{{ d }}" {% if selected_difficulty == d %}selected{% endif %}>{{ d }}</option>
+                    {% endfor %}
+                </select>
+
+                <!-- Time Filter -->
+                <select name="max_time" class="filter-select" onchange="this.form.submit()">
+                    <option value="">Любое время</option>
+                    <option value="15" {% if selected_max_time == 15 %}selected{% endif %}>До 15 минут</option>
+                    <option value="30" {% if selected_max_time == 30 %}selected{% endif %}>До 30 минут</option>
+                    <option value="60" {% if selected_max_time == 60 %}selected{% endif %}>До 1 часа</option>
+                </select>
+
+                {% if search_query or selected_cuisine or selected_category or selected_difficulty or selected_max_time %}
+                <a href="{{ url_for('index') }}" class="btn btn-secondary btn-sm" title="Сбросить фильтры">
+                    <i class="fas fa-times"></i> Сбросить
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Sort By -->
+            <div class="sort-group">
+                <span class="sort-label"><i class="fas fa-arrow-down-wide-short"></i> Сортировка:</span>
+                <select name="sort" class="filter-select" onchange="this.form.submit()">
+                    <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>Сначала новые</option>
+                    <option value="popular" {% if selected_sort == 'popular' %}selected{% endif %}>По популярности</option>
+                    <option value="fastest" {% if selected_sort == 'fastest' %}selected{% endif %}>Самые быстрые</option>
+                    <option value="oldest" {% if selected_sort == 'oldest' %}selected{% endif %}>Сначала старые</option>
+                </select>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- Recipes Catalog Grid -->
+<section class="catalog-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-book-open" style="color: var(--primary);"></i>
+                {% if selected_category %}{{ selected_category }}{% else %}Каталог рецептов{% endif %}
+            </h2>
+            <div class="recipes-count-text">
+                Найдено: <strong>{{ pagination.total }}</strong> рецептов
+            </div>
+        </div>
+
+        {% if recipes %}
+        <div class="recipe-grid">
+            {% for recipe in recipes %}
+            <article class="recipe-card">
+                <!-- Media & Badges -->
+                <div class="card-media">
+                    <a href="{{ url_for('recipe_detail', recipe_id=recipe.id) }}">
+                        <img src="{{ recipe.get_main_image_url() }}" alt="{{ recipe.title }}" class="card-img" loading="lazy">
+                    </a>
+                    <div class="card-badges">
+                        <span class="badge badge-cuisine">{{ recipe.cuisine }}</span>
+                        <span class="badge badge-difficulty">{{ recipe.difficulty }}</span>
+                    </div>
+
+                    {% if current_user.is_authenticated %}
+                    <button class="card-fav-btn fav-toggle-btn {% if current_user.has_favorited(recipe.id) %}active{% endif %}" 
+                            data-recipe-id="{{ recipe.id }}" 
+                            title="Добавить в избранное"
+                            aria-label="Toggle favorite">
+                        <i class="{% if current_user.has_favorited(recipe.id) %}fas{% else %}far{% endif %} fa-heart"></i>
+                    </button>
+                    {% endif %}
+                </div>
+
+                <!-- Body -->
+                <div class="card-body">
+                    <div class="card-meta">
+                        <div class="meta-item"><i class="far fa-clock"></i> {{ recipe.total_time_formatted }}</div>
+                        <div class="meta-item"><i class="fas fa-users"></i> {{ recipe.servings }} порц.</div>
+                        {% if recipe.calories %}
+                        <div class="meta-item"><i class="fas fa-fire"></i> {{ recipe.calories }} ккал</div>
+                        {% endif %}
+                    </div>
+
+                    <h3 class="card-title">
+                        <a href="{{ url_for('recipe_detail', recipe_id=recipe.id) }}">{{ recipe.title }}</a>
+                    </h3>
+
+                    <p class="card-description">{{ recipe.description }}</p>
+
+                    <!-- Footer -->
+                    <div class="card-footer">
+                        <a href="{{ url_for('profile', username=recipe.author.username) }}" class="card-author">
+                            <img src="{{ recipe.author.get_avatar_url() }}" alt="{{ recipe.author.username }}" class="author-mini-avatar">
+                            <span class="author-name">{{ recipe.author.username }}</span>
+                        </a>
+
+                        <div class="card-rating">
+                            <i class="fas fa-star"></i>
+                            <span>{{ recipe.average_rating if recipe.average_rating > 0 else '—' }}</span>
+                            {% if recipe.reviews_count > 0 %}
+                            <span class="rating-count">({{ recipe.reviews_count }})</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination Controls -->
+        {% if pagination.pages > 1 %}
+        <nav class="pagination" aria-label="Page navigation">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('index', page=pagination.prev_num, q=search_query, cuisine=selected_cuisine, category=selected_category, difficulty=selected_difficulty, max_time=selected_max_time, sort=selected_sort) }}" class="page-link" aria-label="Previous">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            {% endif %}
+
+            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if p %}
+                    {% if p == pagination.page %}
+                        <span class="page-link active">{{ p }}</span>
+                    {% else %}
+                        <a href="{{ url_for('index', page=p, q=search_query, cuisine=selected_cuisine, category=selected_category, difficulty=selected_difficulty, max_time=selected_max_time, sort=selected_sort) }}" class="page-link">{{ p }}</a>
+                    {% endif %}
+                {% else %}
+                    <span class="page-link" style="border: none; background: transparent;">...</span>
+                {% endif %}
+            {% endfor %}
+
+            {% if pagination.has_next %}
+            <a href="{{ url_for('index', page=pagination.next_num, q=search_query, cuisine=selected_cuisine, category=selected_category, difficulty=selected_difficulty, max_time=selected_max_time, sort=selected_sort) }}" class="page-link" aria-label="Next">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+            {% endif %}
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <i class="fas fa-kitchen-set empty-icon"></i>
+            <h3 class="empty-title">Рецепты не найдены</h3>
+            <p class="empty-text">Попробуйте изменить поисковый запрос или сбросить активные фильтры.</p>
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                <i class="fas fa-rotate-left"></i> Показать все рецепты
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
