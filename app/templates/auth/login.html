@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "macros/forms.html" import field %}
+{% block content %}
+<div class="card qe-auth-card">
+  <div class="text-center mb-3">
+    <div class="qe-icon-badge"><i class="bi bi-shield-lock"></i></div>
+    <h3 class="mb-0">Вход для сотрудников</h3>
+    <p class="qe-muted small">Доступ к панели управления АИС QuestEvent</p>
+  </div>
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }}
+    {{ field(form.email) }}
+    {{ field(form.password) }}
+    <div class="form-check mb-3">
+      {{ form.remember(class="form-check-input") }} {{ form.remember.label }}
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Войти</button>
+  </form>
+  <hr class="qe-divider">
+  <p class="qe-muted small mb-0">Демо-доступ: superadmin@questevent.ru / admin123</p>
+</div>
+{% endblock %}

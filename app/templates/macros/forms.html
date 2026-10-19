@@ -1,0 +1,15 @@
+{% macro field(f, extra_class="") %}
+  <div class="mb-3">
+    {{ f.label(class="form-label") }}
+    {% if f.type == 'BooleanField' %}
+      <div class="form-check">
+        {{ f(class="form-check-input") }}
+      </div>
+    {% else %}
+      {{ f(class="form-control " ~ extra_class ~ (' is-invalid' if f.errors else '')) }}
+    {% endif %}
+    {% for err in f.errors %}
+      <div class="invalid-feedback d-block">{{ err }}</div>
+    {% endfor %}
+  </div>
+{% endmacro %}

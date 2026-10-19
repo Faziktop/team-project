@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Тарифы</h2>
+  <a href="{{ url_for('admin.tariff_new') }}" class="btn btn-primary">+ Тариф</a>
+</div>
+<table class="table table-striped bg-white">
+  <thead><tr><th>Квест</th><th>Название</th><th>Дни недели</th><th>Время</th><th>Цена</th><th>За доп. игрока</th></tr></thead>
+  <tbody>
+  {% for t in items %}
+    <tr><td>{{ t.quest.title }}</td><td>{{ t.name }}</td><td>{{ t.weekday_mask }}</td>
+        <td>{{ t.time_from }}–{{ t.time_to }}</td><td>{{ t.price_per_slot }} ₽</td><td>{{ t.price_per_extra_player }} ₽</td></tr>
+  {% else %}
+    <tr><td colspan="6" class="text-muted">Тарифов пока нет</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

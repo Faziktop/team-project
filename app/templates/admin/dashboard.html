@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="qe-eyebrow">Период: {{ kpi.period }}</div>
+<h1 class="mb-4">Дашборд руководителя</h1>
+
+<div class="row g-3">
+  <div class="col-md-3"><div class="qe-kpi"><div class="qe-kpi-accent"></div><div class="qe-kpi-label">Выручка</div><div class="qe-kpi-value">{{ kpi.revenue }} ₽</div></div></div>
+  <div class="col-md-3"><div class="qe-kpi"><div class="qe-kpi-accent"></div><div class="qe-kpi-label">Бронирований</div><div class="qe-kpi-value">{{ kpi.total_bookings }}</div></div></div>
+  <div class="col-md-3"><div class="qe-kpi"><div class="qe-kpi-accent"></div><div class="qe-kpi-label">Конверсия</div><div class="qe-kpi-value">{{ kpi.conversion_pct }}%</div></div></div>
+  <div class="col-md-3"><div class="qe-kpi"><div class="qe-kpi-accent"></div><div class="qe-kpi-label">Средняя загрузка</div><div class="qe-kpi-value">{{ kpi.avg_occupancy_pct }}%</div></div></div>
+</div>
+<div class="row g-3 mt-1">
+  <div class="col-md-3"><div class="qe-kpi"><div class="qe-kpi-accent"></div><div class="qe-kpi-label">Средний чек</div><div class="qe-kpi-value" style="font-size:1.4rem;">{{ kpi.avg_check }} ₽</div></div></div>
+  <div class="col-md-3"><div class="qe-kpi"><div class="qe-kpi-accent" style="background:var(--ember);"></div><div class="qe-kpi-label">Отменено</div><div class="qe-kpi-value" style="font-size:1.4rem; color:var(--ember);">{{ kpi.canceled_bookings }}</div></div></div>
+</div>
+<div class="mt-4 d-flex gap-2">
+  <a href="{{ url_for('reports.dashboard') }}" class="btn btn-primary"><i class="bi bi-graph-up"></i> Подробные отчёты</a>
+  <a href="{{ url_for('schedule.calendar') }}" class="btn btn-outline-primary"><i class="bi bi-calendar3"></i> Расписание</a>
+</div>
+{% endblock %}

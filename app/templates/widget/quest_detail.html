@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% from "macros/quest.html" import stars, quest_image %}
+{% block body_class %}{{ 'qe-horror-page' if quest.is_horror }}{% endblock %}
+{% block content %}
+<div class="qe-detail-hero {{ 'qe-detail-hero-horror' if quest.is_horror }}">
+  {% if quest.is_horror %}
+  <div class="qe-blood-drips" aria-hidden="true">
+    <span class="qe-drip" style="left: 15%; animation-delay: 0.4s;"></span>
+    <span class="qe-drip" style="left: 38%; animation-delay: 2.1s;"></span>
+    <span class="qe-drip" style="left: 63%; animation-delay: 1.2s;"></span>
+    <span class="qe-drip" style="left: 85%; animation-delay: 3.4s;"></span>
+  </div>
+  {% endif %}
+  <div class="qe-parallax-layer" data-parallax="0.12">
+    <img class="qe-kenburns-img" src="{{ url_for('static', filename='img/quests/' ~ quest_image(quest.title)) }}" alt="{{ quest.title }}">
+  </div>
+  <div class="qe-detail-hero-content">
+    <div class="qe-quest-location"><i class="bi bi-geo-alt"></i> {{ quest.room.location.name }} / {{ quest.room.name }}</div>
+    {% if quest.is_horror %}
+    <h1 class="qe-glitch" data-text="{{ quest.title }}">{{ quest.title }}</h1>
+    {% else %}
+    <h1>{{ quest.title }}</h1>
+    {% endif %}
+    <div class="d-flex flex-wrap align-items-center gap-3">
+      {{ stars(quest.difficulty) }}
+      <span class="qe-difficulty qe-difficulty-{{ quest.difficulty }}"><i class="bi bi-lock"></i> {{ quest.difficulty }}</span>
+      <span class="qe-muted"><i class="bi bi-clock"></i> {{ quest.duration_minutes }} мин</span>
+      <span class="qe-muted"><i class="bi bi-people"></i> {{ quest.min_players }}–{{ quest.max_players }} игроков</span>
+      {% if quest.is_horror %}
+      <span class="qe-age-warning"><i class="bi bi-exclamation-triangle-fill"></i> {{ quest.min_age }}+</span>
+      {% elif quest.min_age %}
+      <span class="qe-muted"><i class="bi bi-shield-exclamation"></i> {{ quest.min_age }}+</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if quest.is_horror %}
+<div class="qe-horror-notice qe-reveal">
+  <i class="bi bi-exclamation-octagon-fill"></i>
+  <div>
+    <strong>Хоррор-квест 18+.</strong> В комнате работает живой актёр, используются резкие
+    звуковые эффекты, стробоскопы и элементы неожиданности. Не рекомендуется людям с
+    сердечно-сосудистыми заболеваниями, эпилепсией, а также беременным.
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-8">
+    <div class="card p-4 h-100 qe-reveal">
+      <div class="qe-eyebrow">О квесте</div>
+      <h5 class="mb-3">{{ quest.title }}</h5>
+      <p class="qe-muted" style="white-space: pre-line;">{{ quest.description }}</p>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="qe-fact-panel qe-reveal">
+      <div class="qe-eyebrow">Кратко</div>
+      {% if min_price %}
+      <div class="qe-price-tag mb-1">от {{ min_price|int }} ₽</div>
+      <div class="qe-muted mb-3" style="font-size:0.85rem;">за сеанс, точная цена зависит от дня и числа игроков</div>
+      {% endif %}
+      <div class="qe-fact-row"><i class="bi bi-geo-alt"></i> <span>{{ quest.room.location.address }}</span></div>
+      {% if quest.room.location.branch.phone %}
+      <div class="qe-fact-row"><i class="bi bi-telephone"></i> <span>{{ quest.room.location.branch.phone }}</span></div>
+      {% endif %}
+      <div class="qe-fact-row"><i class="bi bi-door-closed"></i> <span>{{ quest.room.name }}</span></div>
+      <div class="qe-fact-row"><i class="bi bi-people"></i> <span>{{ quest.min_players }}–{{ quest.max_players }} игроков в команде</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="card p-4 mb-4 qe-reveal">
+  <div class="qe-eyebrow">Бронирование</div>
+  <h5 class="mb-3"><i class="bi bi-calendar3"></i> Выберите дату и время</h5>
+  <input type="date" id="date-picker" class="form-control mb-3" style="max-width:220px"
+         min="{{ today }}" value="{{ today }}" max="{{ week_ahead }}">
+  <div id="slots" class="d-flex flex-wrap"
+       data-quest-id="{{ quest.id }}"
+       data-api-url="{{ url_for('schedule.api_available_slots') }}"
+       data-step2-url="{{ url_for('widget.booking_step2', slot_id=0) }}"></div>
+</div>
+
+{% if reviews %}
+<div class="mb-2">
+  <div class="qe-eyebrow">Отзывы игроков</div>
+  <h5 class="mb-3">Что говорят те, кто уже прошёл этот квест</h5>
+</div>
+<div class="row g-3 mb-4">
+  {% for r in reviews %}
+  <div class="col-md-4">
+    <div class="qe-review-card qe-reveal">
+      <span class="qe-stars">
+        {% for i in range(5) %}{% if i < r.rating %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star-fill qe-star-empty"></i>{% endif %}{% endfor %}
+      </span>
+      <p class="mb-2 mt-2" style="font-size:0.92rem;">{{ r.text }}</p>
+      <div class="qe-muted" style="font-size:0.8rem;">{{ r.client.full_name }}</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

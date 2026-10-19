@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% from "macros/forms.html" import field %}
+{% block content %}
+<h2>Генерация сеансов расписания</h2>
+<form method="post" novalidate class="col-md-6">
+  {{ form.hidden_tag() }}
+  {{ field(form.room_id) }}{{ field(form.quest_id) }}
+  <div class="row"><div class="col">{{ field(form.date_from) }}</div><div class="col">{{ field(form.date_to) }}</div></div>
+  <div class="row"><div class="col">{{ field(form.day_start) }}</div><div class="col">{{ field(form.day_end) }}</div></div>
+  <button class="btn btn-primary">Сгенерировать</button>
+</form>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+{% set status_labels = {'confirmed': 'Подтверждено', 'completed': 'Проведено', 'canceled': 'Отменено', 'no_show': 'Неявка'} %}
+{% set status_badge = {'confirmed': 'bg-success', 'completed': 'bg-secondary', 'canceled': 'bg-danger', 'no_show': 'bg-secondary'} %}
+<h2 class="mb-3">Мои бронирования</h2>
+<div class="table-responsive">
+<table class="table table-striped bg-white">
+  <thead><tr><th>Код</th><th>Квест</th><th>Дата</th><th>Статус</th><th>Сумма</th><th></th></tr></thead>
+  <tbody>
+  {% for b in bookings %}
+    <tr>
+      <td class="qe-code">{{ b.confirmation_code }}</td><td>{{ b.slot.quest.title }}</td>
+      <td>{{ b.slot.start_time.strftime('%d.%m.%Y %H:%M') }}</td>
+      <td><span class="badge {{ status_badge.get(b.status, 'bg-secondary') }}">{{ status_labels.get(b.status, b.status) }}</span></td>
+      <td>{{ b.final_price }} ₽</td>
+      <td>
+        {% if b.status != 'canceled' %}<div class="d-flex gap-1 flex-wrap mb-1"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('widget.google_calendar', booking_id=b.id) }}" target="_blank" rel="noopener noreferrer">Google Calendar</a><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('widget.yandex_route', booking_id=b.id) }}" target="_blank" rel="noopener noreferrer">Маршрут</a></div>{% endif %}
+        {% if b.status == 'confirmed' %}
+        <form method="post" action="{{ url_for('widget.my_booking_cancel', booking_id=b.id) }}" data-confirm="Отменить бронирование?" class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-sm btn-outline-danger">Отменить</button>
+        </form>
+        {% elif b.status == 'completed' and not b.review %}
+        <a href="{{ url_for('widget.leave_review', booking_id=b.id) }}" class="btn btn-sm btn-outline-primary">Оставить отзыв</a>
+        {% endif %}
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="6" class="text-muted">У вас пока нет бронирований</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

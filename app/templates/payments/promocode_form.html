@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% from "macros/forms.html" import field %}
+{% block content %}
+<h2>Новый промокод</h2>
+<form method="post" novalidate class="col-md-6">
+  {{ form.hidden_tag() }}
+  {{ field(form.code) }}
+  <div class="row"><div class="col">{{ field(form.discount_percent) }}</div><div class="col">{{ field(form.discount_amount) }}</div></div>
+  <div class="row"><div class="col">{{ field(form.valid_from) }}</div><div class="col">{{ field(form.valid_to) }}</div></div>
+  {{ field(form.usage_limit) }}
+  <button class="btn btn-primary">Создать</button>
+</form>
+{% endblock %}

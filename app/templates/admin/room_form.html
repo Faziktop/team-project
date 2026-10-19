@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% from "macros/forms.html" import field %}
+{% block content %}
+<h2>{{ title }}</h2>
+<form method="post" novalidate class="col-md-6">
+  {{ form.hidden_tag() }}
+  {{ field(form.location_id) }}{{ field(form.name) }}{{ field(form.status) }}{{ field(form.maintenance_note) }}
+  <button class="btn btn-primary">Сохранить</button>
+</form>
+{% endblock %}

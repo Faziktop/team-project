@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card p-5 text-center mx-auto" style="max-width: 480px;">
+  <div class="qe-icon-badge qe-icon-success" style="font-size:1.75rem; width:64px; height:64px;"><i class="bi bi-patch-check-fill"></i></div>
+  <h2 class="mt-1">Бронь подтверждена</h2>
+  <p class="qe-muted mb-4">Сохраните код — он понадобится на входе и для управления бронью</p>
+  <div class="qe-code mb-4 text-brass" style="font-size:1.6rem; letter-spacing: 0.15em;">{{ booking.confirmation_code }}</div>
+  <p class="mb-1">{{ booking.slot.quest.title }}</p>
+  <p class="qe-muted mb-3">{{ booking.slot.start_time.strftime('%d.%m.%Y %H:%M') }}</p>
+  <p class="mb-4">Сумма: <strong>{{ booking.final_price }} ₽</strong></p>
+  <a href="{{ url_for('widget.index') }}" class="btn btn-primary">На главную</a>
+</div>
+{% endblock %}

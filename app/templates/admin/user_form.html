@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% from "macros/forms.html" import field %}
+{% block content %}
+<h2>{{ title }}</h2>
+<form method="post" novalidate class="col-md-6">
+  {{ form.hidden_tag() }}
+  {{ field(form.full_name) }}{{ field(form.email) }}{{ field(form.phone) }}
+  {{ field(form.password) }}
+  {% if is_edit %}<p class="qe-muted small mt-n2 mb-3">Оставьте поле пустым, чтобы не менять текущий пароль</p>{% endif %}
+  {{ field(form.role) }}{{ field(form.branch_id) }}
+  <button class="btn btn-primary">Сохранить</button>
+</form>
+{% endblock %}

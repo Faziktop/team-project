@@ -1,0 +1,18 @@
+{% macro stars(difficulty) %}
+{% set filled = {'легкий': 2, 'средний': 3, 'сложный': 5}.get(difficulty, 3) %}
+<span class="qe-stars">
+  {% for i in range(5) %}{% if i < filled %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star-fill qe-star-empty"></i>{% endif %}{% endfor %}
+</span>
+{% endmacro %}
+
+{% macro quest_image(title) -%}
+{%- set images = {
+  'Тайна пирамиды': 'pyramid.jpg',
+  'Заброшенный госпиталь': 'haunted_mansion.jpg',
+  'SOS с орбиты': 'sos_orbit.jpg',
+  'Дело №13': 'case13.jpg',
+  'Проклятие особняка Вороных': 'curse_mansion.jpg',
+  'Побег из Крестов': 'vault_escape.jpg'
+} -%}
+{{- images.get(title, 'pyramid.jpg') -}}
+{%- endmacro %}

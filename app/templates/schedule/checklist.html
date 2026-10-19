@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Чек-лист подготовки: {{ slot.quest.title }} — {{ slot.start_time.strftime('%d.%m.%Y %H:%M') }}</h2>
+{% if slot.active_booking %}
+<p>Бронирование: <strong>{{ slot.active_booking.confirmation_code }}</strong>, клиент: {{ slot.active_booking.client.full_name }}, игроков: {{ slot.active_booking.players_count }}</p>
+<form method="post" action="{{ url_for('schedule.booking_cancel', booking_id=slot.active_booking.id) }}" class="d-inline" data-confirm="Отменить бронирование?">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button class="btn btn-sm btn-outline-danger mb-2">Отменить бронирование</button>
+</form>
+<form method="post" action="{{ url_for('schedule.booking_complete', booking_id=slot.active_booking.id) }}" class="d-inline">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button class="btn btn-sm btn-outline-success mb-2">Отметить как проведённое</button>
+</form>
+<form method="post" action="{{ url_for('schedule.booking_no_show', booking_id=slot.active_booking.id) }}" class="d-inline" data-confirm="Отметить неявку клиента?">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button class="btn btn-sm btn-outline-secondary mb-2">Неявка</button>
+</form>
+{% endif %}
+{% if items %}
+<form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <ul class="list-group mb-3">
+    {% for item in items %}
+    <li class="list-group-item">
+      <input type="checkbox" name="item_id" value="{{ item.id }}" {{ 'checked' if marks.get(item.id) and marks[item.id].is_done else '' }}>
+      {{ item.text }}
+    </li>
+    {% endfor %}
+  </ul>
+  <button class="btn btn-primary">Сохранить чек-лист</button>
+</form>
+{% else %}
+<p class="text-muted">Для этого квеста не настроен шаблон чек-листа.</p>
+{% endif %}
+{% endblock %}

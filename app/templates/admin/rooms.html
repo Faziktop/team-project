@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Комнаты</h2>
+  <a href="{{ url_for('admin.room_new') }}" class="btn btn-primary">+ Комната</a>
+</div>
+<table class="table table-striped bg-white">
+  <thead><tr><th>Локация</th><th>Название</th><th>Статус</th><th>Примечание</th><th></th></tr></thead>
+  <tbody>
+  {% for r in items %}
+    <tr>
+      <td>{{ r.location.name }}</td><td>{{ r.name }}</td>
+      <td><span class="badge {{ 'bg-success' if r.status=='ok' else 'bg-warning text-dark' }}">{{ 'В строю' if r.status=='ok' else 'На обслуживании' }}</span></td>
+      <td>{{ r.maintenance_note or '—' }}</td>
+      <td>
+        <form method="post" action="{{ url_for('admin.room_toggle_maintenance', room_id=r.id) }}" class="d-flex gap-1">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          {% if r.status == 'ok' %}<input type="text" name="note" class="form-control form-control-sm" placeholder="Причина">{% endif %}
+          <button class="btn btn-sm btn-outline-secondary">{{ 'Снять с обслуживания' if r.status=='maintenance' else 'На обслуживание' }}</button>
+        </form>
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="5" class="text-muted">Комнат пока нет</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <div class="qe-eyebrow">Расписание сеансов</div>
+    <h1 class="mb-0">{{ day.strftime('%d.%m.%Y') }}</h1>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary" href="?date={{ prev_day }}"><i class="bi bi-chevron-left"></i></a>
+    <a class="btn btn-outline-secondary" href="?date={{ next_day }}"><i class="bi bi-chevron-right"></i></a>
+    <a class="btn btn-primary" href="{{ url_for('schedule.generate_slots') }}"><i class="bi bi-plus-lg"></i> Сгенерировать сеансы</a>
+  </div>
+</div>
+
+<div class="mb-3 d-flex gap-3 flex-wrap small qe-muted">
+  <span><i class="bi bi-square-fill" style="color:var(--verdigris);"></i> Свободно</span>
+  <span><i class="bi bi-square-fill" style="color:var(--ember);"></i> Забронировано</span>
+  <span><i class="bi bi-square-fill" style="color:var(--border);"></i> Проведено / на обслуживании</span>
+</div>
+
+{% for room in rooms %}
+<div class="card mb-3 p-3">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <strong>{{ room.location.name }} / {{ room.name }}</strong>
+    {% if room.status == 'maintenance' %}<span class="badge bg-warning">На обслуживании</span>{% endif %}
+  </div>
+  <div class="d-flex flex-wrap">
+    {% for s in slots_by_room.get(room.id, []) %}
+      {% if s.status == 'available' %}
+        <a href="{{ url_for('schedule.booking_new', slot_id=s.id) }}" class="qe-ticket qe-ticket-available" title="{{ s.quest.title }}">
+          <i class="bi bi-ticket-perforated"></i> {{ s.start_time.strftime('%H:%M') }}
+        </a>
+      {% elif s.status == 'booked' %}
+        <a href="{{ url_for('schedule.slot_checklist', slot_id=s.id) }}" class="qe-ticket qe-ticket-booked" title="{{ s.quest.title }}">
+          <i class="bi bi-lock-fill"></i> {{ s.start_time.strftime('%H:%M') }}
+        </a>
+      {% elif s.status == 'completed' %}
+        <span class="qe-ticket qe-ticket-completed" title="{{ s.quest.title }}"><i class="bi bi-check2"></i> {{ s.start_time.strftime('%H:%M') }}</span>
+      {% else %}
+        <span class="qe-ticket qe-ticket-blocked" title="{{ s.quest.title }}">{{ s.start_time.strftime('%H:%M') }}</span>
+      {% endif %}
+    {% else %}
+      <span class="qe-muted">Нет сеансов на эту дату</span>
+    {% endfor %}
+  </div>
+</div>
+{% else %}
+<p class="qe-muted">Локации/комнаты пока не созданы.</p>
+{% endfor %}
+{% endblock %}

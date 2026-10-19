@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% from "macros/quest.html" import stars, quest_image %}
+{% block content %}
+<div class="qe-hero">
+  <div class="qe-hero-bg" style="background-image: url('{{ url_for('static', filename='img/quests/haunted_mansion.jpg') }}');"></div>
+  <div class="qe-hero-overlay"></div>
+  <span class="qe-eyebrow"><i class="bi bi-stars"></i> Квесты и хоррор-ивенты в реальности</span>
+  <h1 class="qe-glitch" data-text="Испытайте свои нервы на прочность">Испытайте свои нервы на прочность</h1>
+  <p>Атмосферные комнаты, живые актёры и сюжеты, от которых стынет кровь. Свободные слоты — в реальном времени, подтверждение — мгновенно.</p>
+  <div class="qe-hero-actions">
+    <a href="#quests" class="btn btn-primary">Выбрать квест</a>
+    <a href="{{ url_for('widget.lookup_booking') }}" class="btn btn-outline-secondary">Найти мою бронь</a>
+  </div>
+</div>
+
+<div id="quests" class="qe-section-title">
+  <div class="qe-eyebrow">Наши квесты</div>
+  <h2>Комната найдётся для любого уровня смелости</h2>
+</div>
+
+<div class="row g-4">
+{% for q in quests %}
+  <div class="col-md-4">
+    <div class="qe-quest-card qe-reveal {{ 'qe-quest-card-horror' if q.is_horror }}">
+      {% if q.is_horror %}
+      <div class="qe-blood-drips" aria-hidden="true">
+        <span class="qe-drip" style="left: 20%; animation-delay: 0.9s;"></span>
+        <span class="qe-drip" style="left: 55%; animation-delay: 2.6s;"></span>
+        <span class="qe-drip" style="left: 80%; animation-delay: 1.7s;"></span>
+      </div>
+      {% endif %}
+      <div class="qe-quest-media">
+        <div class="qe-parallax-layer" data-parallax="0.08">
+          <img src="{{ url_for('static', filename='img/quests/' ~ quest_image(q.title)) }}" alt="{{ q.title }}" loading="lazy">
+        </div>
+        <div class="qe-quest-badges">
+          <span class="qe-quest-chip"><i class="bi bi-clock"></i> {{ q.duration_minutes }} мин</span>
+          <span class="qe-quest-chip"><i class="bi bi-people"></i> {{ q.min_players }}–{{ q.max_players }}</span>
+        </div>
+        {% if q.is_horror %}
+        <span class="qe-horror-tag"><i class="bi bi-exclamation-triangle-fill"></i> {{ q.min_age }}+ ХОРРОР</span>
+        {% endif %}
+      </div>
+      <div class="qe-quest-body">
+        <div class="qe-quest-location"><i class="bi bi-geo-alt"></i> {{ q.room.location.name }}</div>
+        {% if q.is_horror %}
+        <h3 class="qe-quest-title qe-glitch" data-text="{{ q.title }}" style="--glitch-delay: {{ loop.index }}s;">{{ q.title }}</h3>
+        {% else %}
+        <h3 class="qe-quest-title">{{ q.title }}</h3>
+        {% endif %}
+        {{ stars(q.difficulty) }}
+        <p class="qe-quest-desc mt-2">{{ (q.description or '')[:120] }}{% if q.description and q.description|length > 120 %}…{% endif %}</p>
+        <div class="qe-quest-meta">
+          <span class="qe-difficulty qe-difficulty-{{ q.difficulty }}"><i class="bi bi-lock"></i> {{ q.difficulty }}</span>
+          {% if not q.is_horror and q.min_age %}<span><i class="bi bi-shield-exclamation"></i> {{ q.min_age }}+</span>{% endif %}
+        </div>
+        <a href="{{ url_for('widget.quest_detail', quest_id=q.id) }}" class="qe-btn-details">Подробнее <i class="bi bi-arrow-right"></i></a>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <p class="qe-muted">Пока нет доступных квестов.</p>
+{% endfor %}
+</div>
+{% endblock %}

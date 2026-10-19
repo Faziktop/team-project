@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+{% set status_labels = {'confirmed': 'Подтверждено', 'completed': 'Проведено', 'canceled': 'Отменено', 'no_show': 'Неявка'} %}
+<h1 class="mb-1">Найти бронирование</h1>
+<p class="qe-muted mb-4">По коду подтверждения и номеру телефона, без входа в личный кабинет</p>
+<div class="row g-4">
+  <div class="col-md-5">
+    <div class="card p-4">
+      <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="mb-3"><label class="form-label">Код бронирования</label><input type="text" name="code" class="form-control qe-code" placeholder="Например, 3E355B30" required></div>
+        <div class="mb-3"><label class="form-label">Телефон</label><input type="text" name="phone" class="form-control" placeholder="+7 999 000-00-00" required></div>
+        <button class="btn btn-primary w-100">Найти</button>
+      </form>
+    </div>
+  </div>
+  {% if booking %}
+  <div class="col-md-6">
+    <div class="card p-4">
+      <div class="qe-eyebrow">{{ status_labels.get(booking.status, booking.status) }}</div>
+      <h4>{{ booking.slot.quest.title }}</h4>
+      <p class="qe-muted mb-1">{{ booking.slot.start_time.strftime('%d.%m.%Y %H:%M') }}</p>
+      <p class="mb-0">Сумма: <strong>{{ booking.final_price }} ₽</strong></p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

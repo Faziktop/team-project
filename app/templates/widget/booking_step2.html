@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% from "macros/forms.html" import field %}
+{% block content %}
+<h1 class="mb-3">Подтверждение бронирования</h1>
+<div class="row g-4">
+  <div class="col-md-5">
+    <div class="card p-4">
+      <div class="qe-eyebrow">Выбранный сеанс</div>
+      <h4 class="mb-1">{{ slot.quest.title }}</h4>
+      <p class="qe-muted mb-3">{{ slot.room.location.name }} / {{ slot.room.name }}</p>
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <i class="bi bi-calendar3 text-brass"></i>
+        <span>{{ slot.start_time.strftime('%d.%m.%Y') }}</span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-clock"></i>
+        <span>{{ slot.start_time.strftime('%H:%M') }} — {{ slot.end_time.strftime('%H:%M') }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-7">
+    <div class="card p-4">
+      <form method="post" novalidate>
+        {{ form.hidden_tag() }}
+        {{ form.slot_id() }}
+        {{ field(form.full_name) }}{{ field(form.phone) }}{{ field(form.email) }}
+        {{ field(form.players_count) }}{{ field(form.promo_code) }}{{ field(form.certificate_code) }}
+        {{ field(form.comment) }}
+        <button class="btn btn-primary w-100">Подтвердить бронь</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

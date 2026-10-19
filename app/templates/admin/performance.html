@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Нагрузочное тестирование — QuestEvent{% endblock %}
+{% block content %}
+<div class="qe-eyebrow">АДМИНИСТРИРОВАНИЕ / ПРОИЗВОДИТЕЛЬНОСТЬ</div>
+<h1 class="mb-2">Нагрузочное тестирование БД</h1>
+<p class="text-muted mb-4">Чтение всех таблиц, сортировка и подсчёты. Два прогона на отдельных копиях SQLite: до и после PRAGMA optimize + VACUUM. Рабочая БД не изменяется.</p>
+<div class="card p-4 mb-4">
+<form method="post" class="row g-3 align-items-end">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<div class="col-md-4"><label class="form-label" for="workers">Параллельных потоков</label><input id="workers" class="form-control" type="number" name="workers" value="4" min="1" max="16" required></div>
+<div class="col-md-4"><label class="form-label" for="operations">Запросов за прогон</label><input id="operations" class="form-control" type="number" name="operations" value="1000" min="100" max="20000" required></div>
+<div class="col-md-2"><label class="form-label" for="rounds">Раунды</label><input id="rounds" class="form-control" type="number" name="rounds" value="4" min="2" max="8"></div><div class="col-md-2"><label class="form-label" for="warmup">Прогрев</label><input id="warmup" class="form-control" type="number" name="warmup" value="2" min="1" max="5"></div><div class="col-md-4"><button class="btn btn-primary w-100" type="submit"><i class="bi bi-play-fill"></i> Запустить тест</button></div>
+</form>
+<p class="small text-muted mt-3 mb-0">Тест выполняется в несколько чередующихся раундов с прогревом. Большие тесты могут занимать много времени. Запускайте вне пиковых часов. Результаты сохраняются только в памяти процесса до перезапуска сервера.</p>
+</div>
+<h2 class="h4 mb-3">Реальные SQL-запросы приложения</h2>
+<p class="small text-muted">Замеры SQLAlchemy в текущем процессе сервера. Учитывается время execute, но не загрузка всех строк и не рендеринг Flask. Параметры запросов не сохраняются.</p>
+{% if sql_profile %}<div class="table-responsive"><table class="table table-striped"><thead><tr><th>SQL (без параметров)</th><th>Вызовов</th><th>Среднее, ms</th><th>P95, ms</th></tr></thead><tbody>{% for q in sql_profile[:30] %}<tr><td><code>{{ q.sql }}</code></td><td>{{ q.count }}</td><td>{{ q.avg_ms }}</td><td>{{ q.p95_ms }}</td></tr>{% endfor %}</tbody></table></div>{% else %}<p class="text-muted">Пока нет замеров. Откройте основные разделы системы, затем обновите страницу.</p>{% endif %}
+{% if result %}<p class="text-muted small">{{ result.note }} Раундов: {{ result.rounds }}. Типов запросов: {{ result.query_types }}.</p>
+<div class="row g-3 mb-4">
+{% for key, title, unit in [('p50','Медиана','ms'),('avg','Средняя задержка','ms'),('p95','P95','ms'),('p99','P99','ms'),('max','Максимум','ms'),('wall_seconds','Время раунда (включая прогрев)','сек')] %}
+<div class="col-md-4"><div class="qe-kpi"><div class="qe-kpi-label">{{ title }}</div><div class="qe-kpi-value" style="font-size:1.4rem">{{ result.before[key] }} → {{ result.after[key] }} <small>{{ unit }}</small></div><div class="small text-muted">До → после</div></div></div>
+{% endfor %}
+</div>
+<h2 class="h4 mb-3">Принятые индексы (только тестовая копия)</h2>
+{% if result.candidates %}<div class="table-responsive"><table class="table table-striped"><thead><tr><th>Таблица</th><th>Колонка</th><th>Индекс</th></tr></thead><tbody>{% for c in result.candidates %}<tr><td>{{ c.table }}</td><td>{{ c.column }}</td><td><code>{{ c.name }}</code></td></tr>{% endfor %}</tbody></table></div>{% else %}<p class="text-muted">Новых кандидатов не найдено.</p>{% endif %}
+<p class="small text-muted">Это эксперимент: индексы проверяются на копии и не применяются к рабочей базе автоматически. Рост скорости не гарантируется.</p>
+<h2 class="h4 mb-3">Проверка каждого кандидата</h2>
+{% if result.decisions %}<div class="table-responsive"><table class="table table-striped"><thead><tr><th>Индекс</th><th>До, ms</th><th>После, ms</th><th>Решение</th></tr></thead><tbody>{% for d in result.decisions %}<tr><td><code>{{ d.name }}</code></td><td>{{ d.before_ms }}</td><td>{{ d.after_ms }}</td><td>{% if d.accepted %}Принят{% else %}Отклонён{% endif %}</td></tr>{% endfor %}</tbody></table></div>{% endif %}
+<h2 class="h4 mb-3">Изменения планов выполнения</h2>
+{% if result.plans %}<div class="table-responsive"><table class="table table-striped"><thead><tr><th>Запрос</th><th>До</th><th>После</th></tr></thead><tbody>{% for p in result.plans %}<tr><td>{{ p.query }}</td><td><code>{{ p.before }}</code></td><td><code>{{ p.after }}</code></td></tr>{% endfor %}</tbody></table></div>{% else %}<p class="text-muted">Изменений планов выполнения не обнаружено.</p>{% endif %}
+<h2 class="h4 mb-3">Сравнение по операциям</h2>
+<div class="table-responsive"><table class="table table-striped align-middle">
+<thead><tr><th>Запрос</th><th>До, ms</th><th>После, ms</th><th>Изменение</th></tr></thead>
+<tbody>{% for label, value in result.before.details.items() %}
+{% set after = result.after.details.get(label, {}).get('avg', 0) %}
+<tr><td>{{ label }}</td><td>{{ value.avg }}</td><td>{{ after }}</td><td>{% if value.avg %}{{ ((value.avg-after)/value.avg*100)|round(1) }}%{% else %}—{% endif %}</td></tr>
+{% endfor %}</tbody></table></div>
+{% endif %}
+{% endblock %}

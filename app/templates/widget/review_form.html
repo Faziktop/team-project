@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% from "macros/forms.html" import field %}
+{% block content %}
+<h2>Отзыв о квесте «{{ booking.slot.quest.title }}»</h2>
+<form method="post" novalidate class="col-md-6">
+  {{ form.hidden_tag() }}
+  {{ field(form.rating) }}{{ field(form.text) }}
+  <button class="btn btn-primary">Отправить</button>
+</form>
+{% endblock %}

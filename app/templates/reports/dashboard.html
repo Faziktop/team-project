@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="qe-eyebrow">Аналитика</div>
+<h1 class="mb-4">Отчёты</h1>
+{% if current_user.role == 'superadmin' %}<form method="post" action="{{ url_for('reports.export_google_sheets') }}" class="mb-3"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-outline-primary">Экспорт в Google Sheets</button></form>{% endif %}
+
+<div class="qe-filter-bar">
+  <form method="get" class="row g-2 align-items-end mb-3">
+    {% if selected_branch_id %}<input type="hidden" name="branch_id" value="{{ selected_branch_id }}">{% endif %}
+    <div class="col-auto">
+      <label class="form-label d-block mb-1">С даты</label>
+      <input type="date" name="date_from" value="{{ d_from }}" class="form-control">
+    </div>
+    <div class="col-auto">
+      <label class="form-label d-block mb-1">По дату</label>
+      <input type="date" name="date_to" value="{{ d_to }}" class="form-control">
+    </div>
+    {% if branches %}
+    <div class="col-auto">
+      <label class="form-label d-block mb-1">Филиал</label>
+      <select name="branch_id" class="form-select" data-autosubmit>
+        <option value="">Все филиалы</option>
+        {% for b in branches %}
+        <option value="{{ b.id }}" {{ 'selected' if selected_branch_id == b.id }}>{{ b.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+    <div class="col-auto">
+      <button class="btn btn-primary">Применить</button>
+    </div>
+  </form>
+  <div class="qe-preset-group">
+    {% for key, label in [('today','Сегодня'), ('week','Эта неделя'), ('month','Этот месяц'), ('last_month','Прошлый месяц'), ('last_30','Последние 30 дней')] %}
+      {% set p_from, p_to = presets[key] %}
+      <a class="qe-preset-btn {{ 'active' if d_from == p_from and d_to == p_to }}"
+         href="{{ url_for('reports.dashboard', date_from=p_from, date_to=p_to, branch_id=selected_branch_id) }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3 col-6"><div class="qe-kpi"><div class="qe-kpi-accent"></div><div class="qe-kpi-label">Выручка</div><div class="qe-kpi-value">{{ revenue.revenue }} ₽</div></div></div>
+  <div class="col-md-3 col-6"><div class="qe-kpi"><div class="qe-kpi-accent"></div><div class="qe-kpi-label">Средний чек</div><div class="qe-kpi-value">{{ revenue.avg_check }} ₽</div></div></div>
+  <div class="col-md-3 col-6"><div class="qe-kpi"><div class="qe-kpi-accent"></div><div class="qe-kpi-label">Конверсия</div><div class="qe-kpi-value">{{ revenue.conversion_pct }}%</div><div class="qe-kpi-sub">{{ revenue.confirmed_bookings }} из {{ revenue.total_bookings }} броней</div></div></div>
+  <div class="col-md-3 col-6"><div class="qe-kpi"><div class="qe-kpi-accent"></div><div class="qe-kpi-label">Средняя загрузка</div><div class="qe-kpi-value">{{ avg_occupancy }}%</div></div></div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-8">
+    <div class="qe-report-card h-100">
+      <div class="qe-report-head">
+        <h5>Динамика выручки по дням</h5>
+        <div>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('reports.export', report_name='revenue-by-day', fmt='csv', date_from=d_from, date_to=d_to, branch_id=selected_branch_id) }}">CSV</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('reports.export', report_name='revenue-by-day', fmt='xlsx', date_from=d_from, date_to=d_to, branch_id=selected_branch_id) }}">Excel</a>
+        </div>
+      </div>
+      {% if trend %}
+      <div class="qe-trend">
+        {% for r in trend %}
+        <div class="qe-trend-col" title="{{ r.date.strftime('%d.%m.%Y') }}: {{ r.revenue }} ₽ ({{ r.bookings_count }} броней)">
+          <div class="qe-trend-bar" style="height: {{ (r.revenue / max_daily_revenue * 100) | round(1) }}%;"></div>
+          {% if loop.index0 % trend_label_step == 0 %}<div class="qe-trend-label">{{ r.date.strftime('%d.%m') }}</div>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="qe-muted mb-0">Нет данных за период</p>
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="qe-report-card h-100">
+      <h5 class="mb-3">Статус бронирований</h5>
+      {% set total_st = revenue.confirmed_bookings + revenue.canceled_bookings %}
+      <div class="qe-status-bar">
+        <div class="qe-status-seg qe-status-good" style="width: {{ (revenue.confirmed_bookings / total_st * 100) if total_st else 0 }}%;"></div>
+        <div class="qe-status-seg qe-status-critical" style="width: {{ (revenue.canceled_bookings / total_st * 100) if total_st else 0 }}%;"></div>
+      </div>
+      <div class="qe-status-legend">
+        <span><span class="qe-dot" style="background:var(--success);"></span>Подтверждено/проведено: {{ revenue.confirmed_bookings }}</span>
+        <span><span class="qe-dot" style="background:var(--danger);"></span>Отменено: {{ revenue.canceled_bookings }}</span>
+      </div>
+      <hr class="qe-divider">
+      <div class="qe-muted small">Всего бронирований за период: <strong class="text-brass">{{ revenue.total_bookings }}</strong></div>
+    </div>
+  </div>
+</div>
+
+<div class="qe-report-card mb-4">
+  <div class="qe-report-head">
+    <h5>Загрузка комнат</h5>
+    <div>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('reports.export', report_name='occupancy', fmt='csv', date_from=d_from, date_to=d_to, branch_id=selected_branch_id) }}">CSV</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('reports.export', report_name='occupancy', fmt='xlsx', date_from=d_from, date_to=d_to, branch_id=selected_branch_id) }}">Excel</a>
+    </div>
+  </div>
+  <div class="qe-barlist">
+    {% for r in occupancy %}
+    <div class="qe-barlist-row" title="{{ r.booked_slots }} из {{ r.total_slots }} сеансов">
+      <div class="qe-barlist-label">{{ r.room }}</div>
+      <div class="qe-barlist-track"><div class="qe-barlist-fill" style="width: {{ r.occupancy_pct }}%;"></div></div>
+      <div class="qe-barlist-value">{{ r.occupancy_pct }}%</div>
+    </div>
+    {% else %}
+    <p class="qe-muted mb-0">Нет данных за период</p>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="qe-report-card h-100">
+      <div class="qe-report-head">
+        <h5>Эффективность квестов</h5>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('reports.export', report_name='quest-effectiveness', fmt='csv', date_from=d_from, date_to=d_to, branch_id=selected_branch_id) }}">CSV</a>
+      </div>
+      <div class="qe-barlist">
+        {% for r in quest_eff %}
+        <div class="qe-barlist-row">
+          <div class="qe-barlist-label">{{ r.quest }}</div>
+          <div class="qe-barlist-track"><div class="qe-barlist-fill" style="width: {{ (r.bookings_count / max_quest_bookings * 100) | round(1) }}%;"></div></div>
+          <div class="qe-barlist-value">{{ r.bookings_count }}</div>
+        </div>
+        {% else %}
+        <p class="qe-muted mb-0">Нет данных</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="qe-report-card h-100">
+      <div class="qe-report-head">
+        <h5>Эффективность администраторов</h5>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('reports.export', report_name='host-effectiveness', fmt='csv', date_from=d_from, date_to=d_to, branch_id=selected_branch_id) }}">CSV</a>
+      </div>
+      <div class="qe-barlist">
+        {% for r in host_eff %}
+        <div class="qe-barlist-row">
+          <div class="qe-barlist-label">{{ r.host }}</div>
+          <div class="qe-barlist-track"><div class="qe-barlist-fill" style="width: {{ (r.bookings_count / max_host_bookings * 100) | round(1) }}%;"></div></div>
+          <div class="qe-barlist-value">{{ r.bookings_count }}</div>
+        </div>
+        {% else %}
+        <p class="qe-muted mb-0">Нет данных (брони созданы через виджет)</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

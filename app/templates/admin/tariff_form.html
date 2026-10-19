@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% from "macros/forms.html" import field %}
+{% block content %}
+<h2>{{ title }}</h2>
+<form method="post" novalidate class="col-md-7">
+  {{ form.hidden_tag() }}
+  {{ field(form.quest_id) }}{{ field(form.name) }}
+  <label class="form-label">Дни недели</label>
+  <div class="mb-3 d-flex flex-wrap gap-2">
+    {% for i, label in weekday_choices %}
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="checkbox" name="weekday" value="{{ i }}" checked id="wd{{ i }}">
+      <label class="form-check-label" for="wd{{ i }}">{{ label }}</label>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="row"><div class="col">{{ field(form.time_from) }}</div><div class="col">{{ field(form.time_to) }}</div></div>
+  {{ field(form.price_per_slot) }}{{ field(form.price_per_extra_player) }}{{ field(form.priority) }}
+  <button class="btn btn-primary">Сохранить</button>
+</form>
+{% endblock %}

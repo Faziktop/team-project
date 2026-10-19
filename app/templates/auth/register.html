@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "macros/forms.html" import field %}
+{% block content %}
+<div class="card qe-auth-card">
+  <div class="text-center mb-3">
+    <div class="qe-icon-badge"><i class="bi bi-person-plus"></i></div>
+    <h3 class="mb-0">Регистрация клиента</h3>
+    <p class="qe-muted small">Доступ к истории броней и отзывам</p>
+  </div>
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }}
+    {{ field(form.full_name) }}
+    {{ field(form.phone) }}
+    {{ field(form.email) }}
+    {{ field(form.password) }}
+    <button type="submit" class="btn btn-primary w-100">Зарегистрироваться</button>
+  </form>
+</div>
+{% endblock %}

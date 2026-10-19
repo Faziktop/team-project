@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+  <h2 class="mb-0">{{ client.full_name }}
+    <span class="badge {{ 'bg-success' if client.is_active else 'bg-secondary' }}">{{ 'Активен' if client.is_active else 'Заблокирован' }}</span>
+  </h2>
+  {% if current_user.role in ('superadmin', 'admin') %}
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('crm.client_edit', client_id=client.id) }}" class="btn btn-outline-primary btn-sm">Изменить</a>
+    <form method="post" action="{{ url_for('crm.client_toggle_active', client_id=client.id) }}"
+          data-confirm="{{ 'Разблокировать' if not client.is_active else 'Заблокировать' }} клиента {{ client.full_name }}?">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-sm {{ 'btn-outline-success' if not client.is_active else 'btn-outline-danger' }}">
+        {{ 'Разблокировать' if not client.is_active else 'Заблокировать' }}
+      </button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+<p>Телефон: {{ client.phone }} | Email: {{ client.email or '—' }} | Бонусы: {{ client.loyalty_points }} | Статус лояльности: {{ client.loyalty_status }}</p>
+{% if client.notes %}<p class="qe-muted">Заметки: {{ client.notes }}</p>{% endif %}
+<h4>История бронирований</h4>
+<table class="table table-striped bg-white">
+  <thead><tr><th>Код</th><th>Квест</th><th>Дата</th><th>Статус</th><th>Сумма</th></tr></thead>
+  <tbody>
+  {% for b in client.bookings %}
+    <tr><td>{{ b.confirmation_code }}</td><td>{{ b.slot.quest.title }}</td><td>{{ b.slot.start_time.strftime('%d.%m.%Y %H:%M') }}</td>
+        <td>{{ b.status }}</td><td>{{ b.final_price }} ₽</td></tr>
+  {% else %}
+    <tr><td colspan="5" class="text-muted">Бронирований нет</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<h4>Отзывы</h4>
+<ul class="list-group">
+  {% for r in client.reviews %}
+  <li class="list-group-item">{{ r.rating }}/5 — {{ r.text or '' }}</li>
+  {% else %}
+  <li class="list-group-item text-muted">Отзывов нет</li>
+  {% endfor %}
+</ul>
+{% endblock %}

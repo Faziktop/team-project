@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% from "macros/forms.html" import field %}
+{% block content %}
+<h2>{{ title }}</h2>
+<form method="post" novalidate class="col-md-7">
+  {{ form.hidden_tag() }}
+  {{ field(form.room_id) }}{{ field(form.title) }}{{ field(form.description) }}
+  {{ field(form.difficulty) }}{{ field(form.duration_minutes) }}
+  <div class="row"><div class="col">{{ field(form.min_players) }}</div><div class="col">{{ field(form.max_players) }}</div></div>
+  {{ field(form.min_age) }}
+  {{ field(form.is_horror) }}
+  <button class="btn btn-primary">Сохранить</button>
+</form>
+{% endblock %}

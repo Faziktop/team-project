@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Квесты</h2>
+  <a href="{{ url_for('admin.quest_new') }}" class="btn btn-primary">+ Квест</a>
+</div>
+<table class="table table-striped bg-white">
+  <thead><tr><th>Название</th><th>Комната</th><th>Сложность</th><th>Длительность</th><th>Игроки</th></tr></thead>
+  <tbody>
+  {% for q in items %}
+    <tr><td><a href="{{ url_for('widget.quest_detail', quest_id=q.id) }}">{{ q.title }}</a></td>
+        <td>{{ q.room.location.name }} / {{ q.room.name }}</td><td>{{ q.difficulty }}</td>
+        <td>{{ q.duration_minutes }} мин</td><td>{{ q.min_players }}–{{ q.max_players }}</td></tr>
+  {% else %}
+    <tr><td colspan="5" class="text-muted">Квестов пока нет</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

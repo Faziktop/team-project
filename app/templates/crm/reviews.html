@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Отзывы клиентов</h2>
+<table class="table table-striped bg-white">
+  <thead><tr><th>Дата</th><th>Клиент</th><th>Квест</th><th>Оценка</th><th>Текст</th></tr></thead>
+  <tbody>
+  {% for r in pagination.items %}
+    <tr><td>{{ r.created_at.strftime('%d.%m.%Y') }}</td><td>{{ r.client.full_name }}</td>
+        <td>{{ r.booking.slot.quest.title }}</td><td>{{ r.rating }}/5</td><td>{{ r.text }}</td></tr>
+  {% else %}
+    <tr><td colspan="5" class="text-muted">Отзывов пока нет</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

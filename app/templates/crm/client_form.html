@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% from "macros/forms.html" import field %}
+{% block content %}
+<h2>Клиент: {{ client.full_name }}</h2>
+<form method="post" novalidate class="col-md-6">
+  {{ form.hidden_tag() }}
+  {{ field(form.full_name) }}{{ field(form.phone) }}{{ field(form.email) }}
+  {{ field(form.loyalty_points) }}{{ field(form.loyalty_status) }}{{ field(form.notes) }}
+  <button class="btn btn-primary">Сохранить</button>
+  <a href="{{ url_for('crm.client_detail', client_id=client.id) }}" class="btn btn-outline-secondary">Отмена</a>
+</form>
+{% endblock %}

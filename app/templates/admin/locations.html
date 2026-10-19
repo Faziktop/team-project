@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Локации</h2>
+  <a href="{{ url_for('admin.location_new') }}" class="btn btn-primary">+ Локация</a>
+</div>
+<table class="table table-striped bg-white">
+  <thead><tr><th>Филиал</th><th>Название</th><th>Адрес</th><th>Комнат</th></tr></thead>
+  <tbody>
+  {% for l in items %}
+    <tr><td>{{ l.branch.name }}</td><td>{{ l.name }}</td><td>{{ l.address }}</td><td>{{ l.rooms|length }}</td></tr>
+  {% else %}
+    <tr><td colspan="4" class="text-muted">Локаций пока нет</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}АИС QuestEvent{% endblock %}</title>
+  <link href="{{ url_for('static', filename='vendor/fonts/fonts.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='vendor/bootstrap-icons/bootstrap-icons.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗝️</text></svg>">
+</head>
+{% set staff_area = request.blueprint in ['admin', 'schedule', 'crm', 'payments', 'reports'] %}
+<body class="{{ 'surface-staff' if staff_area else 'surface-guest' }} {% block body_class %}{% endblock %}">
+{% if not staff_area %}
+<div class="qe-atmosphere" aria-hidden="true">
+  <div class="qe-grain"></div>
+  <div class="qe-vignette"></div>
+  <div class="qe-scanlines"></div>
+  <div class="qe-flashlight" id="qe-flashlight"></div>
+</div>
+{% endif %}
+<nav class="qe-navbar navbar navbar-expand-lg">
+  <div class="container-fluid">
+    <a class="qe-brand navbar-brand" href="{{ url_for('widget.index') }}">
+      <span class="qe-brand-mark"><i class="bi bi-key-fill"></i></span>
+      <span class="qe-brand-text">Quest<em>Event</em></span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    {% if not staff_area %}
+    <div class="qe-blood-drips" aria-hidden="true">
+      <span class="qe-drip" style="left: 8%; animation-delay: 0s;"></span>
+      <span class="qe-drip" style="left: 27%; animation-delay: 1.8s;"></span>
+      <span class="qe-drip" style="left: 52%; animation-delay: 0.6s;"></span>
+      <span class="qe-drip" style="left: 74%; animation-delay: 3.1s;"></span>
+      <span class="qe-drip" style="left: 91%; animation-delay: 2.3s;"></span>
+    </div>
+    {% endif %}
+    <div class="collapse navbar-collapse" id="nav">
+      {% if current_user.is_authenticated and current_user.is_staff() %}
+      <ul class="navbar-nav me-auto qe-nav-main">
+        <li class="nav-item"><a class="nav-link {{ 'active' if request.blueprint=='admin' and request.endpoint=='admin.dashboard' }}" href="{{ url_for('admin.dashboard') }}"><i class="bi bi-speedometer2"></i> Дашборд</a></li>
+        <li class="nav-item"><a class="nav-link {{ 'active' if request.blueprint=='schedule' }}" href="{{ url_for('schedule.calendar') }}"><i class="bi bi-calendar3"></i> Расписание</a></li>
+        <li class="nav-item"><a class="nav-link {{ 'active' if request.blueprint=='crm' }}" href="{{ url_for('crm.clients') }}"><i class="bi bi-people"></i> Клиенты</a></li>
+        <li class="nav-item"><a class="nav-link {{ 'active' if request.blueprint=='reports' }}" href="{{ url_for('reports.dashboard') }}"><i class="bi bi-graph-up"></i> Отчёты</a></li>
+        {% if current_user.role in ('superadmin', 'admin') %}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-gear"></i> Администрирование</a>
+          <ul class="dropdown-menu qe-dropdown">
+            {% if current_user.role == 'superadmin' %}<li><a class="dropdown-item" href="{{ url_for('admin.branches') }}">Филиалы</a></li>{% endif %}
+            <li><a class="dropdown-item" href="{{ url_for('admin.locations') }}">Локации</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('admin.rooms') }}">Комнаты</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('admin.quests') }}">Квесты</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('admin.tariffs') }}">Тарифы</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('admin.users') }}">Сотрудники</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('payments.promocodes') }}">Промокоды</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('payments.certificates') }}">Сертификаты</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('admin.audit_log') }}">Журнал аудита</a></li>
+            {% if current_user.role == 'superadmin' %}<li><a class="dropdown-item" href="{{ url_for('admin.performance') }}"><i class="bi bi-speedometer2"></i> Нагрузочное тестирование</a></li>{% endif %}
+          </ul>
+        </li>
+        {% endif %}
+      </ul>
+      {% endif %}
+      <ul class="navbar-nav ms-auto qe-nav-side">
+        {% if current_user.is_authenticated %}
+          {% if current_user.role == 'client' %}
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('widget.my_bookings') }}"><i class="bi bi-ticket-perforated"></i> Мои брони</a></li>
+          {% endif %}
+          <li class="nav-item"><span class="nav-link qe-user"><i class="bi bi-person-circle"></i> {{ current_user.full_name }}</span></li>
+          <li class="nav-item">
+            <form method="post" action="{{ url_for('auth.logout') }}" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="nav-link qe-logout-btn">Выйти</button>
+            </form>
+          </li>
+        {% else %}
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('widget.lookup_booking') }}">Найти бронь</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Вход для сотрудников</a></li>
+          <li class="nav-item"><a class="qe-btn-nav" href="{{ url_for('auth.register') }}">Регистрация</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+<main>
+<div class="container qe-container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="qe-flashes">
+      {% for category, message in messages %}
+        <div class="alert qe-alert qe-alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</div>
+</main>
+<footer class="qe-footer text-center">
+  <small>АИС «QuestEvent» — демонстрационная версия (Python/Flask/SQLite)</small>
+</footer>
+<script src="{{ url_for('static', filename='vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% if not staff_area %}
+<script src="{{ url_for('static', filename='js/atmosphere.js') }}"></script>
+{% endif %}
+{% block scripts %}{% endblock %}
+</body>
+</html>

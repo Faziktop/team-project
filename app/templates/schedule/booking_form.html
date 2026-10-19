@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% from "macros/forms.html" import field %}
+{% block content %}
+<h2>Создание бронирования (администратор)</h2>
+<form method="post" novalidate class="col-md-6">
+  {{ form.hidden_tag() }}
+  {{ field(form.slot_id) }}{{ field(form.client_name) }}{{ field(form.client_phone) }}
+  {{ field(form.players_count) }}{{ field(form.promo_code) }}{{ field(form.certificate_code) }}
+  {{ field(form.comment) }}
+  <button class="btn btn-primary">Забронировать</button>
+</form>
+{% endblock %}
